@@ -1,0 +1,22 @@
+.page-view { display: flex; flex-direction: column; }
+
+.back-link { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 700; color: var(--color-primary); text-decoration: none; transition: color 0.2s; }
+.back-link:hover { color: var(--color-primary-dark); }
+
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 24px; background: var(--color-gray-50); border-radius: 12px; }
+.info-item { display: flex; align-items: center; gap: 12px; }
+.icon-box { width: 40px; height: 40px; border-radius: 8px; background: white; display: flex; align-items: center; justify-content: center; color: var(--color-primary); border: 1px solid var(--color-gray-200); box-shadow: var(--shadow-sm); }
+.info-label { font-size: 10px; font-weight: 700; color: var(--color-gray-600); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 2px; }
+.info-value { font-size: 14px; font-weight: 600; color: var(--color-gray-900); }
+
+.bottom-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px; }
+
+.btn-stepper { width: 48px; height: 48px; border-radius: 8px; border: none; background: var(--color-gray-200); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--color-gray-700); transition: background 0.2s; }
+.btn-stepper:hover { background: var(--color-gray-300); }
+.stepper-input:focus { outline: 2px solid var(--color-primary); }
+
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
