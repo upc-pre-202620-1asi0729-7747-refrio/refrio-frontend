@@ -1,0 +1,51 @@
+<div class="page-view animate-fade-in">
+  <div class="page-header" style="margin-bottom: 24px; display: flex; align-items: center; gap: 16px;">
+    <a [routerLink]="['/alerts']" class="icon-btn" style="text-decoration: none; color: var(--color-gray-600); background: white; border: 1px solid var(--color-gray-200); border-radius: 8px; padding: 8px; display: flex;">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </a>
+    <div>
+      <h1 class="page-title">{{ 'ALERTS.ALERT_ID' | translate }}: {{ alertId() }}</h1>
+      <p class="page-subtitle">{{ 'ALERTS.SUBTITLE' | translate }}</p>
+    </div>
+  </div>
+
+  @if (alertData()) {
+    <div class="card p-5" style="max-width: 600px;">
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--color-gray-100); padding-bottom: 16px;">
+          <div>
+            <div style="color: var(--color-gray-500); font-size: 12px; margin-bottom: 4px;">{{ 'ALERTS.TYPE' | translate }}</div>
+            <div style="font-weight: 600; font-size: 16px; color: var(--color-gray-900);">{{ 'ALERTS_DATA.' + alertData().type | translate }}</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="color: var(--color-gray-500); font-size: 12px; margin-bottom: 4px;">{{ 'ALERTS.SEVERITY' | translate }}</div>
+            <span class="badge" [class]="getSeverityClass(alertData().severity)">
+              {{ 'ALERTS_DATA.' + alertData().severity | translate }}
+            </span>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--color-gray-100); padding-bottom: 16px;">
+          <div>
+            <div style="color: var(--color-gray-500); font-size: 12px; margin-bottom: 4px;">{{ 'ALERTS.LOCATION' | translate }}</div>
+            <div style="font-weight: 500; color: var(--color-gray-800);">{{ 'ALERTS_DATA.' + alertData().location | translate }}</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="color: var(--color-gray-500); font-size: 12px; margin-bottom: 4px;">{{ 'ALERTS.TIME' | translate }}</div>
+            <div style="font-weight: 500; color: var(--color-gray-800);">{{ 'ALERTS_DATA.' + alertData().time | translate }}</div>
+          </div>
+        </div>
+
+        <div style="padding-top: 8px;">
+          <button class="btn-primary" style="width: 100%;">{{ 'TABLE.EDIT' | translate }}</button>
+        </div>
+
+      </div>
+    </div>
+  } @else {
+    <div class="card p-5" style="max-width: 600px;">
+      <p style="color: var(--color-gray-500);">Loading...</p>
+    </div>
+  }
+</div>
