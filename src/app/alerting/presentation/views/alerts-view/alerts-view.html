@@ -1,0 +1,48 @@
+<div class="page-view animate-fade-in">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">{{ 'ALERTS.TITLE' | translate }}</h1>
+      <p class="page-subtitle">{{ 'ALERTS.SUBTITLE' | translate }}</p>
+    </div>
+  </div>
+
+  <div class="card p-5">
+    <div class="card-header-flex p-4">
+      <h2 class="card-title">{{ 'ALERTS.ALL_ALERTS' | translate }}</h2>
+      <div style="display:flex; gap:16px; align-items:center;">
+        <button class="btn-secondary" style="font-size:12px; padding: 6px 12px; border-radius:20px;">
+          {{ 'ALERTS.FILTER_STATUS' | translate }} <span class="material-symbols-outlined" style="font-size:16px; margin-left:4px;">keyboard_arrow_down</span>
+        </button>
+        <a href="#" class="action-link" style="font-weight:600; text-decoration:none;">{{ 'DASHBOARD.VIEW_ALL' | translate }}</a>
+      </div>
+    </div>
+    
+    <div class="table-wrapper mt-4">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>{{ 'ALERTS.ALERT_ID' | translate }}</th>
+            <th>{{ 'ALERTS.TYPE' | translate }}</th>
+            <th>{{ 'ALERTS.TIME' | translate }}</th>
+            <th>{{ 'ALERTS.LOCATION' | translate }}</th>
+            <th>{{ 'ALERTS.SEVERITY' | translate }}</th>
+            <th>{{ 'TABLE.ACTIONS' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (alert of alerts(); track alert.id) {
+            <tr>
+              <td class="fw-600 text-gray-900">{{ alert.id }}</td>
+              <td class="text-gray-900">{{ alert.type }}</td>
+              <td class="text-muted" style="font-size:12px;">{{ alert.time }}</td>
+              <td class="text-muted">{{ alert.location }}</td>
+              <td><span class="badge" [class]="getSeverityClass(alert.severity)">{{ alert.severity }}</span></td>
+              <td><a [routerLink]="['/alerts', alert.id]" class="fw-600" style="color:var(--color-primary); font-size:13px; text-decoration:none; cursor: pointer;">{{ 'TABLE.VIEW' | translate }}</a></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />

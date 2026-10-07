@@ -1,0 +1,94 @@
+<div class="page-view animate-fade-in">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">{{ 'ORDER_HISTORY.TITLE' | translate }}</h1>
+      <p class="page-subtitle">{{ 'ORDER_HISTORY.SUBTITLE' | translate }}</p>
+    </div>
+  </div>
+
+  <div class="filters-row">
+    <button class="btn-filter" [class.active]="currentFilter() === 'Todos'" (click)="setFilter('Todos')">{{ 'ORDER_HISTORY.ALL' | translate }} ({{
+      stats.todos }})</button>
+    <button class="btn-filter" [class.active]="currentFilter() === 'Entregados'"
+      (click)="setFilter('Entregados')">{{ 'ORDER_HISTORY.DELIVERED' | translate }} ({{ stats.entregados }})</button>
+    <button class="btn-filter" [class.active]="currentFilter() === 'En Camino'" (click)="setFilter('En Camino')">{{ 'ORDER_HISTORY.IN_TRANSIT' | translate }} ({{ stats.enCamino }})</button>
+    <button class="btn-filter" [class.active]="currentFilter() === 'Observacion'"
+      (click)="setFilter('Observacion')">{{ 'ORDER_HISTORY.OBSERVATION' | translate }} ({{ stats.observacion }})</button>
+  </div>
+
+  <div class="card p-4">
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>{{ 'TABLE.ORDER' | translate }}</th>
+            <th>{{ 'TABLE.DATE_TIME' | translate }}</th>
+            <th>{{ 'TABLE.MERCHANDISE' | translate }}</th>
+            <th>{{ 'TABLE.SUPPLIER' | translate }}</th>
+            <th>{{ 'TABLE.AMOUNT' | translate }}</th>
+            <th>{{ 'TABLE.STATUS' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (order of paginatedOrders(); track order.id) {
+          <tr>
+            <td>
+              <div class="icon-box" [class.alert-icon-box]="order.isAlert"
+                [class.transit-icon-box]="order.status === 'En Tránsito'">
+                <span class="material-symbols-outlined"
+                  [style.color]="order.isAlert ? '#dc2626' : (order.status === 'En Tránsito' ? '#2563eb' : 'var(--color-primary)')">
+                  {{ order.status === 'En Tránsito' ? 'local_shipping' : (order.isAlert ? 'warning' : 'package') }}
+                </span>
+              </div>
+            </td>
+            <td>
+              <div class="fw-600 text-gray-900">{{ order.id }}</div>
+              <div style="font-size:10px; font-weight:600;" [class.text-danger]="order.isAlert"
+                [class.text-primary]="!order.isAlert">{{ order.doc }}</div>
+            </td>
+            <td>
+              <div class="fw-600" [class.text-primary]="order.datePrimary" [class.text-gray-900]="!order.datePrimary">{{
+                order.date }}</div>
+              <div style="font-size:10px;" [class.text-danger]="order.isAlert" [class.text-muted]="!order.isAlert">{{
+                order.statusDesc }}</div>
+            </td>
+            <td>
+              <div class="fw-600 text-gray-900">{{ order.product }}</div>
+              <div class="text-muted" style="font-size:10px; max-width: 150px;">{{ order.qty }}</div>
+            </td>
+            <td class="text-gray-900">{{ order.supplier }}</td>
+            <td class="text-gray-900 fw-600">{{ order.amount }}</td>
+            <td>
+              <span class="badge" [class]="order.colorClass">
+                <span class="material-symbols-outlined"
+                  style="font-size:14px; margin-right:4px; vertical-align:middle;">{{ order.icon }}</span>
+                {{ order.status }}
+              </span>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination-footer">
+      <div class="text-muted" style="font-size: 13px;">
+        {{ 'TABLE.SHOWING' | translate }} {{ (currentPage() - 1) * pageSize + 1 }} - {{ Math.min(currentPage() * pageSize,
+        filteredOrders().length) }} {{ 'TABLE.OF' | translate }} {{ filteredOrders().length }} {{ 'TABLE.ORDERS' | translate }}
+      </div>
+      <div class="pagination-controls">
+        <button class="btn-page" [disabled]="currentPage() === 1" (click)="setPage(currentPage() - 1)">{{ 'TABLE.PREVIOUS' | translate }}</button>
+        <button class="btn-page" [class.active]="currentPage() === 1" (click)="setPage(1)">1</button>
+        @if (totalPages() >= 2) {
+        <button class="btn-page" [class.active]="currentPage() === 2" (click)="setPage(2)">2</button>
+        }
+        <button class="btn-page" [disabled]="currentPage() === totalPages() || totalPages() === 0"
+          (click)="setPage(currentPage() + 1)">{{ 'TABLE.NEXT' | translate }}</button>
+      </div>
+    </div>
+  </div>
+</div>
+<link
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+  rel="stylesheet" />

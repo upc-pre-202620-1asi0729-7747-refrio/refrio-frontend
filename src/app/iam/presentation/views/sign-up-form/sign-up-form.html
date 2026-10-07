@@ -1,0 +1,112 @@
+<div class="auth-page">
+  <div class="auth-panel-left">
+    <div class="brand">
+      <div class="brand-logo">
+        <img src="RefrioLogo.png" alt="Refrio Logo">
+      </div>
+      <span class="brand-name">Refrio</span>
+    </div>
+    <div class="panel-content">
+      <h1>{{ 'AUTH.SIGNUP_TITLE' | translate }}</h1>
+      <p>{{ 'AUTH.SIGNUP_SUBTITLE' | translate }}</p>
+    </div>
+  </div>
+
+  <div class="auth-panel-right" style="position: relative;">
+    <button type="button" (click)="translationService.toggleLanguage()" style="position: absolute; top: 32px; right: 32px; background: white; border: 1px solid var(--color-gray-200); border-radius: 20px; padding: 6px 12px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 13px; color: var(--color-gray-700); box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: background 0.2s;" onmouseover="this.style.background='var(--color-gray-50)'" onmouseout="this.style.background='white'">
+      <span class="material-symbols-outlined" style="font-size: 18px;">language</span>
+      {{ translationService.currentLang() === 'en' ? 'EN' : 'ES' }}
+    </button>
+    <div class="auth-card">
+      <div class="auth-card-header">
+        <h2>{{ 'AUTH.SIGNUP_WELCOME' | translate }}</h2>
+        <p>{{ 'AUTH.SIGNUP_INSTRUCTION' | translate }}</p>
+      </div>
+
+      @if (iamStore.error()) {
+        <div class="alert-error">
+          <span class="material-symbols-outlined">error</span>
+          {{ iamStore.error() }}
+        </div>
+      }
+
+      <form (ngSubmit)="onSubmit()" class="auth-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="signup-firstname">{{ 'AUTH.FIRST_NAME' | translate }}</label>
+            <input id="signup-firstname" type="text" [(ngModel)]="firstName" name="firstName" placeholder="" required />
+          </div>
+          <div class="form-group">
+            <label for="signup-lastname">{{ 'AUTH.LAST_NAME' | translate }}</label>
+            <input id="signup-lastname" type="text" [(ngModel)]="lastName" name="lastName" placeholder="" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="signup-username">{{ 'AUTH.USERNAME' | translate }}</label>
+          <input id="signup-username" type="text" [(ngModel)]="username" name="username" placeholder="" required />
+        </div>
+
+        <div class="form-group">
+          <label for="signup-email">{{ 'AUTH.EMAIL' | translate }}</label>
+          <input id="signup-email" type="email" [(ngModel)]="email" name="email" placeholder="" required />
+        </div>
+
+        <div class="form-group">
+          <label for="signup-password">{{ 'AUTH.PASSWORD' | translate }}</label>
+          <div class="input-wrapper">
+            <input
+              id="signup-password"
+              [type]="showPassword() ? 'text' : 'password'"
+              [(ngModel)]="password"
+              name="password"
+              placeholder="Create a strong password"
+              required
+            />
+            <button type="button" class="toggle-password" (click)="togglePassword()" id="btn-toggle-signup-password">
+              <span class="material-symbols-outlined">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="signup-role">{{ 'AUTH.ROLE' | translate }}</label>
+            <select id="signup-role" [(ngModel)]="role" name="role">
+              @for (r of roles; track r) {
+                <option [value]="r">{{ r }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="signup-plan">{{ 'AUTH.PLAN' | translate }}</label>
+            <select id="signup-plan" [(ngModel)]="subscriptionPlan" name="subscriptionPlan">
+              @for (p of plans; track p) {
+                <option [value]="p">{{ p }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="signup-sede">{{ 'AUTH.SEDE' | translate }}</label>
+          <input id="signup-sede" type="text" [(ngModel)]="sede" name="sede" placeholder="" required />
+        </div>
+
+        <button type="submit" class="btn-primary" id="btn-sign-up" [disabled]="iamStore.isLoading()">
+          @if (iamStore.isLoading()) {
+            <span class="spinner"></span> {{ 'AUTH.SIGNUP_LOADING' | translate }}
+          } @else {
+            {{ 'AUTH.SIGNUP_BTN' | translate }}
+          }
+        </button>
+      </form>
+
+      <p class="auth-footer">
+        {{ 'AUTH.HAVE_ACCOUNT' | translate }}
+        <a routerLink="/sign-in" id="link-sign-in-from-signup">{{ 'AUTH.SIGN_IN' | translate }}</a>
+      </p>
+    </div>
+  </div>
+</div>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />

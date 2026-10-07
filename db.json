@@ -1,0 +1,364 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "username": "admin",
+      "password": "admin",
+      "email": "admin@refrio.com",
+      "firstName": "Admin",
+      "lastName": "User",
+      "role": "Supervisor",
+      "subscriptionPlan": "Profesional",
+      "sede": "Lima Central",
+      "token": "mock-jwt-token-distrib"
+    },
+    {
+      "id": "2",
+      "username": "bodega",
+      "password": "bodega",
+      "email": "bodega@refrio.com",
+      "firstName": "Bodeguero",
+      "lastName": "User",
+      "role": "Minorista",
+      "subscriptionPlan": "Basico",
+      "sede": "Bodega Central",
+      "token": "mock-jwt-token-bodega"
+    }
+  ],
+  "inventory": [
+    {
+      "id": "PRD-001",
+      "name": "Fresh Strawberries",
+      "category": "Fruits",
+      "stock": "450",
+      "temp": "3°C",
+      "exp": "2026-04-28",
+      "warehouse": "Lima Central"
+    },
+    {
+      "id": "PRD-002",
+      "name": "Organic Lettuce",
+      "category": "Vegetables",
+      "stock": "320",
+      "temp": "5°C",
+      "exp": "2026-04-25",
+      "warehouse": "North Hub"
+    },
+    {
+      "id": "PRD-003",
+      "name": "Fresh Milk",
+      "category": "Dairy",
+      "stock": "180",
+      "temp": "4°C",
+      "exp": "2026-04-24",
+      "warehouse": "Lima Central"
+    }
+  ],
+  "alerts": [
+    {
+      "id": "ALT-2841",
+      "type": "Temperature",
+      "time": "2h ago",
+      "location": "Warehouse North",
+      "severity": "Critical"
+    },
+    {
+      "id": "ALT-2840",
+      "type": "Delayed Shipment",
+      "time": "45min ago",
+      "location": "Lima - San Isidro Route",
+      "severity": "Medium"
+    },
+    {
+      "id": "ALT-2838",
+      "type": "Low Stock Warning",
+      "time": "3h ago",
+      "location": "Lima Central",
+      "severity": "Medium"
+    },
+    {
+      "id": "ALT-2835",
+      "type": "Cold Chain Breach",
+      "time": "1h ago",
+      "location": "In Transit",
+      "severity": "Critical"
+    },
+    {
+      "id": "ALT-2830",
+      "type": "Telemetry Loss",
+      "time": "30min ago",
+      "location": "Lima-Callao Route",
+      "severity": "Medium"
+    },
+    {
+      "id": "ALT-2828",
+      "type": "Approaching Delivery",
+      "time": "15min ago",
+      "location": "Near Surco Market",
+      "severity": "Low"
+    },
+    {
+      "id": "ALT-2825",
+      "type": "Maintenance Suggested",
+      "time": "8h ago",
+      "location": "North Hub",
+      "severity": "Medium"
+    }
+  ],
+  "shipments": [
+    {
+      "id": "FK-1023",
+      "product": "Berries",
+      "route": "Lima → Surco",
+      "temperature": "3°C",
+      "eta": "12:30 PM",
+      "status": "In Transit",
+      "driver": "Juan Pérez",
+      "vehicle": "REF-001"
+    },
+    {
+      "id": "FK-1024",
+      "product": "Lettuce",
+      "route": "Callao → Miraflores",
+      "temperature": "5°C",
+      "eta": "1:15 PM",
+      "status": "Delivered",
+      "driver": "María García",
+      "vehicle": "REF-002"
+    },
+    {
+      "id": "FK-1025",
+      "product": "Dairy",
+      "route": "Lima → San Isidro",
+      "temperature": "6°C",
+      "eta": "2:40 PM",
+      "status": "Delayed",
+      "driver": "Carlos López",
+      "vehicle": "REF-003"
+    },
+    {
+      "id": "FK-1026",
+      "product": "Chicken",
+      "route": "Surco → Barranco",
+      "temperature": "2°C",
+      "eta": "3:00 PM",
+      "status": "In Transit",
+      "driver": "Ana Torres",
+      "vehicle": "REF-004"
+    },
+    {
+      "id": "FK-1027",
+      "product": "Frozen Shrimp",
+      "route": "Callao → Chorrillos",
+      "temperature": "-18°C",
+      "eta": "4:30 PM",
+      "status": "In Transit",
+      "driver": "Luis Ríos",
+      "vehicle": "REF-005"
+    }
+  ],
+  "clients": [
+    {
+      "id": "CLI-001",
+      "name": "Bodega San José",
+      "type": "Bodega",
+      "orders": 48,
+      "province": "Lima",
+      "district": "Surco"
+    },
+    {
+      "id": "CLI-002",
+      "name": "Minimarket El Sol",
+      "type": "Minimarket",
+      "orders": 35,
+      "province": "Lima",
+      "district": "SMP"
+    },
+    {
+      "id": "CLI-003",
+      "name": "Distribuidora Central Lima",
+      "type": "Cadena Retail",
+      "orders": 42,
+      "province": "Ica",
+      "district": "Ate"
+    },
+    {
+      "id": "CLI-004",
+      "name": "Supermercado La Esquina",
+      "type": "Frutería Especializada",
+      "orders": 28,
+      "province": "Lima",
+      "district": "Santa anita"
+    },
+    {
+      "id": "CLI-005",
+      "name": "Bodega Doña Rosa",
+      "type": "Bodega",
+      "orders": 31,
+      "province": "Lima",
+      "district": "Ate"
+    }
+  ],
+  "suppliers": [
+    {
+      "id": "SUP-001",
+      "name": "Fresh Farms Co.",
+      "category": "Fruits & Vegetables",
+      "deliveries": 48,
+      "score": 98,
+      "rating": "4.8"
+    },
+    {
+      "id": "SUP-002",
+      "name": "Green Valley Produce",
+      "category": "Vegetables",
+      "deliveries": 35,
+      "score": 94,
+      "rating": "4.5"
+    },
+    {
+      "id": "SUP-003",
+      "name": "Coastal Distributors",
+      "category": "Seafood & Frozen",
+      "deliveries": 42,
+      "score": 96,
+      "rating": "4.7"
+    },
+    {
+      "id": "SUP-004",
+      "name": "Mountain Fresh",
+      "category": "Dairy",
+      "deliveries": 28,
+      "score": 91,
+      "rating": "4.3"
+    },
+    {
+      "id": "SUP-005",
+      "name": "Tropical Imports Ltd.",
+      "category": "Exotic Fruits",
+      "deliveries": 31,
+      "score": 95,
+      "rating": "4.6"
+    },
+    {
+      "code": "SUP-006",
+      "name": "Andrés S.A.C",
+      "category": "Lácteos",
+      "deliveries": 0,
+      "score": 100,
+      "rating": "5.0",
+      "id": "7hnJSU1tMsw"
+    },
+    {
+      "code": "SUP-007",
+      "name": "Pedrito S.A.C",
+      "category": "Bebidas",
+      "deliveries": 0,
+      "score": 100,
+      "rating": "5.0",
+      "id": "2QIXjIo"
+    }
+  ],
+  "bodeguero-inventory": [
+    {
+      "id": "PRD-001",
+      "name": "Coca Cola 500ml",
+      "category": "Bebidas",
+      "stock": "50",
+      "temp": "7°C",
+      "exp": "2026-12-01",
+      "warehouse": "Bodega Principal",
+      "status": "Active"
+    },
+    {
+      "id": "PRD-002",
+      "name": "Helado D'Onofrio",
+      "category": "Congelados",
+      "stock": "12",
+      "temp": "-18°C",
+      "exp": "2026-06-15",
+      "warehouse": "Conservadora 1"
+    },
+    {
+      "id": "PRD-003",
+      "name": "Fresh Milk",
+      "category": "Dairy",
+      "stock": "180",
+      "temp": "4°C",
+      "exp": "2026-05-01",
+      "warehouse": "Lima Central"
+    },
+    {
+      "id": "PRD-004",
+      "name": "Cheese",
+      "category": "Dairy",
+      "warehouse": "Santa Anita",
+      "stock": "20",
+      "temp": "5°C",
+      "exp": "2026-10-14"
+    },
+    {
+      "id": "PRD-005",
+      "name": "Dulce de leche",
+      "category": "Lacteo",
+      "warehouse": "Tambo",
+      "stock": "50",
+      "temp": "6°C",
+      "exp": "2026-12-31"
+    }
+  ],
+  "batches": [
+    {
+      "id": "BT-4501",
+      "productId": "PRD-001",
+      "quantity": "150",
+      "weight": "300 kg",
+      "receptionDate": "2026-04-10",
+      "expirationDate": "2026-04-28",
+      "supplier": "Fresh Farms Co.",
+      "location": "Rampa 01",
+      "status": "Vender ya",
+      "notes": "Good condition on arrival"
+    },
+    {
+      "id": "BT-4512",
+      "productId": "PRD-001",
+      "quantity": "200",
+      "weight": "400 kg",
+      "receptionDate": "2026-04-12",
+      "expirationDate": "2026-05-02",
+      "supplier": "Green Valley Produce",
+      "location": "Rack B4",
+      "status": "En espera",
+      "notes": "Stored correctly"
+    },
+    {
+      "id": "BT-4530",
+      "productId": "PRD-001",
+      "quantity": "100",
+      "weight": "200 kg",
+      "receptionDate": "2026-04-15",
+      "expirationDate": "2026-05-06",
+      "supplier": "Agroexportadora",
+      "location": "Rack B5",
+      "status": "Fresh",
+      "notes": "Perfect temp"
+    },
+    {
+      "id": "BT-B101",
+      "productId": "B-PRD-001",
+      "quantity": "24",
+      "weight": "12 kg",
+      "receptionDate": "2026-01-10",
+      "expirationDate": "2026-12-01",
+      "supplier": "Coca Cola Zero",
+      "location": "Estante A",
+      "status": "Fresh",
+      "notes": "N/A"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}
+
+
+

@@ -1,0 +1,43 @@
+<div class="page-view animate-fade-in">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">{{ 'ANALYTICS.TITLE' | translate }}</h1>
+      <p class="page-subtitle">{{ 'ANALYTICS.SUBTITLE' | translate }}</p>
+    </div>
+  </div>
+
+  <!-- KPI Grid -->
+  <div class="kpi-grid">
+    @for (metric of analyticsStore.metrics(); track metric.id) {
+    <div class="kpi-card card">
+      <div class="kpi-header">
+        <span class="kpi-name">{{ metric.metricName }}</span>
+        <span class="kpi-trend" [class]="getTrendClass(metric.trend)">
+          <span class="material-symbols-outlined">{{ getTrendIcon(metric.trend) }}</span>
+          @if (metric.trendPercentage !== 0) {
+          {{ metric.trendPercentage > 0 ? '+' : '' }}{{ metric.trendPercentage }}%
+          }
+        </span>
+      </div>
+      <div class="kpi-value">
+        {{ metric.value | number }}
+        <span class="kpi-unit">{{ metric.unit }}</span>
+      </div>
+      <div class="kpi-period">{{ metric.period }}</div>
+    </div>
+    }
+  </div>
+
+  <!-- Placeholder for Charts -->
+  <div class="card chart-placeholder">
+    <h2 class="card-title">{{ 'ANALYTICS.CHART_TITLE' | translate }}</h2>
+    <p class="placeholder-text">
+
+      {{ 'ANALYTICS.CHART_DESC' | translate }}
+    </p>
+  </div>
+</div>
+
+<link
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+  rel="stylesheet" />
