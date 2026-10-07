@@ -1,0 +1,41 @@
+/* Sign Up — reuses sign-in styles plus additions */
+@import '../sign-in-form/sign-in-form.css';
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  height: 44px;
+  padding: 0 var(--space-3);
+  border: 1.5px solid var(--color-gray-200);
+  border-radius: var(--radius);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  color: var(--color-gray-800);
+  background: var(--color-gray-50);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: var(--color-primary);
+  background: var(--color-white);
+  box-shadow: 0 0 0 3px var(--color-primary-100);
+}
+
+.input-wrapper input {
+  padding-right: 44px;
+}
+
+.auth-panel-right {
+  overflow-y: auto;
+  padding: var(--space-8);
+  align-items: flex-start;
+  padding-top: 60px;
+}
