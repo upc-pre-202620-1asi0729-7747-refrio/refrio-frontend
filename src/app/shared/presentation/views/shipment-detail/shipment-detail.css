@@ -1,0 +1,31 @@
+.page-view { display: flex; flex-direction: column; gap: var(--space-4); }
+
+.back-link { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 700; color: var(--color-primary-dark); text-decoration: none; transition: color 0.2s; }
+.back-link:hover { color: var(--color-primary); }
+
+.top-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 8px; }
+
+.main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+
+.timeline-container { display: flex; justify-content: space-between; align-items: flex-start; padding: 24px; background: var(--color-gray-50); border-radius: 12px; }
+.timeline-step { display: flex; flex-direction: column; width: 140px; position: relative; z-index: 1; }
+.step-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; margin-bottom: 12px; }
+.timeline-step.active .step-icon { background: var(--color-primary-dark); }
+.timeline-step.in-progress .step-icon { background: var(--color-primary-light); }
+.timeline-step.pending .step-icon { background: var(--color-gray-300); }
+
+.step-time { font-size: 10px; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 4px; text-transform: uppercase; }
+.timeline-step.active .step-time { color: var(--color-primary-dark); }
+.timeline-step.in-progress .step-time { color: var(--color-primary-light); }
+.timeline-step.pending .step-time { color: var(--color-gray-500); }
+
+.step-title { font-size: 12px; font-weight: 700; color: var(--color-gray-900); margin-bottom: 4px; line-height: 1.2; }
+.step-desc { font-size: 11px; color: var(--color-gray-500); line-height: 1.2; }
+
+.timeline-line { flex: 1; height: 2px; background: var(--color-gray-200); margin-top: 15px; z-index: 0; }
+.timeline-line.active { background: var(--color-primary-light); }
+
+.map-overlay { position: absolute; bottom: 16px; left: 16px; right: 16px; background: white; border-radius: 12px; padding: 12px; display: flex; align-items: center; box-shadow: var(--shadow-md); }
+
+.btn-whatsapp { width: 100%; padding: 10px; border-radius: 8px; background: #10b981; color: white; border: none; font-weight: 600; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; transition: background 0.2s; }
+.btn-whatsapp:hover { background: #059669; }
