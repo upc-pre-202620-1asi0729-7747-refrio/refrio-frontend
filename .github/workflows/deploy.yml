@@ -31,14 +31,20 @@ jobs:
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
+
+      - name: Verificar workspace
+        run: |
+          pwd
+          ls -la
+          test -f angular.json
 
       - name: Instalar dependencias
         run: npm ci
 
       - name: Compilar Angular
-        run: npm run build -- --base-href /refrio-frontend/
+        run: npx ng build refrio-frontend --configuration production --base-href /refrio-frontend/
 
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
