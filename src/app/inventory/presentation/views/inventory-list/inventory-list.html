@@ -1,0 +1,280 @@
+<div class="page-view animate-fade-in">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">{{ 'INVENTORY.TITLE' | translate }}</h1>
+      <p class="page-subtitle">{{ 'INVENTORY.SUBTITLE' | translate }}</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-secondary">
+        <span class="material-symbols-outlined">qr_code_scanner</span>
+        {{ 'INVENTORY.SCAN_BATCH' | translate }}
+      </button>
+      <button class="btn-primary" id="btn-add-inventory" (click)="openAddProduct()">
+        <span class="material-symbols-outlined">add</span>
+        {{ 'INVENTORY.ADD_PRODUCT' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <div class="top-cards-grid">
+    <div class="card p-5">
+      <h2 class="card-title mb-4">{{ 'INVENTORY.STOCK_CATEGORY' | translate }}</h2>
+      @for (cat of stockByCategory(); track cat.name; let idx = $index) {
+        <div class="progress-item">
+          <div class="progress-labels"><span>{{ cat.name }}</span><span>{{ cat.units }} units ({{ cat.pct }}%)</span></div>
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="cat.pct" [style.background]="idx === 0 ? 'var(--color-primary)' : (idx === 1 ? 'var(--color-primary-light)' : 'var(--color-gray-400)')"></div>
+          </div>
+        </div>
+      }
+      @if (stockByCategory().length === 0) {
+        <div class="text-muted" style="font-size: 13px;">{{ 'INVENTORY.NO_CATEGORIES' | translate }}</div>
+      }
+    </div>
+
+    <div class="card p-5">
+      <h2 class="card-title">{{ 'INVENTORY.EXPIRING_SOON' | translate }}</h2>
+      <p class="text-muted" style="font-size:12px; margin-bottom:16px;">{{ 'INVENTORY.EXPIRING_DESC' | translate }}</p>
+      <div class="expiring-list">
+        <div class="expiring-item">
+          <div class="expiring-header">
+            <span class="fw-600" style="color: var(--color-gray-900);">Fresh Milk</span>
+            <span class="badge badge-warning">May 01</span>
+          </div>
+          <div class="text-muted" style="font-size:11px; margin-top:2px;">
+            Batch: BT-4521<br>Units: 180 • Lima Central
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header-flex p-4">
+      <h2 class="card-title">{{ 'INVENTORY.ALL_PRODUCTS' | translate }}</h2>
+      <button class="btn-secondary" style="font-size:12px; padding: 4px 12px;" (click)="cycleFilter()">{{ 'INVENTORY.FILTER' | translate }} {{
+        currentFilter() }} <span class="material-symbols-outlined"
+          style="font-size:14px; margin-left:4px;">filter_list</span></button>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>{{ 'TABLE.PRODUCT_ID' | translate }}</th>
+            <th>{{ 'TABLE.NAME' | translate }}</th>
+            <th>{{ 'TABLE.CATEGORY' | translate }}</th>
+            <th>{{ 'TABLE.STOCK' | translate }}</th>
+            <th>{{ 'TABLE.TEMPERATURE' | translate }}</th>
+            <th>{{ 'TABLE.ACTIONS' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (prod of filteredProducts(); track prod.id) {
+          <tr>
+            <td class="fw-600">{{ prod.id }}</td>
+            <td>
+              <div class="fw-600 text-gray-900">{{ prod.name }}</div>
+              <div class="text-muted" style="font-size:10px;">{{ prod.warehouse }} • Exp: {{ prod.exp }}</div>
+            </td>
+            <td class="text-muted">{{ prod.category }}</td>
+            <td>
+              <div class="fw-600 text-gray-900">{{ prod.stock }}</div>
+              <div class="text-muted" style="font-size:10px;">{{ 'INVENTORY.UNITS' | translate }}</div>
+            </td>
+            <td class="text-muted">{{ prod.temp }}</td>
+            <td>
+              <div style="display:flex; gap:12px; align-items:center;">
+                <button class="btn-secondary" style="padding:4px 8px; font-size:12px;" (click)="openEditProduct(prod)">
+                  <span class="material-symbols-outlined" style="font-size:14px; color:var(--color-primary)">edit</span>
+                  <span style="color:var(--color-primary)">{{ 'TABLE.EDIT' | translate }}</span>
+                </button>
+                <a [routerLink]="['/inventory', prod.id]" class="action-link">{{ 'TABLE.VIEW' | translate }}</a>
+              </div>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Register New Batch Modal -->
+@if (isAddBatchOpen()) {
+<div class="modal-overlay" (click)="closeAddBatch()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="modal-title">{{ 'INVENTORY.MODAL_BATCH_TITLE' | translate }}</h3>
+      <button class="btn-close" (click)="closeAddBatch()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Product</label>
+          <input type="text" class="form-control" [(ngModel)]="newBatch.product" placeholder="">
+        </div>
+        <div class="form-group">
+          <label>Batch Number</label>
+          <input type="text" class="form-control" [(ngModel)]="newBatch.batchNumber" placeholder="e.g., BT-4530">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Quantity (units)</label>
+          <input type="text" class="form-control" [(ngModel)]="newBatch.quantity" placeholder="e.g., 500">
+        </div>
+        <div class="form-group">
+          <label>Reception Date</label>
+          <input type="date" class="form-control" [(ngModel)]="newBatch.receptionDate">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Supplier</label>
+          <input type="text" class="form-control" [(ngModel)]="newBatch.supplier" placeholder="">
+        </div>
+        <div class="form-group">
+          <label>Expiration Date</label>
+          <input type="date" class="form-control" [(ngModel)]="newBatch.expirationDate">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Quality Inspection Notes</label>
+        <textarea class="form-control" [(ngModel)]="newBatch.notes"
+          placeholder="Quality check results, temperature on arrival, etc."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeAddBatch()">Cancel</button>
+      <button class="btn-submit" (click)="addBatch()">
+        <span class="material-symbols-outlined"
+          style="font-size:16px; margin-right:4px; vertical-align:middle;">layers</span>
+        Register Batch
+      </button>
+    </div>
+  </div>
+</div>
+}
+
+<!-- Edit Product Modal -->
+@if (isEditProductOpen()) {
+<div class="modal-overlay" (click)="closeEditProduct()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="modal-title">{{ 'INVENTORY.MODAL_EDIT_TITLE' | translate }}</h3>
+      <button class="btn-close" (click)="closeEditProduct()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div
+        style="background-color: var(--color-primary-50); color: var(--color-primary-dark); padding: 12px; border-radius: 8px; border: 1px solid var(--color-primary-100); display: flex; gap: 8px; align-items: center; font-size: 13px; margin-bottom: 8px;">
+        <span class="material-symbols-outlined" style="font-size: 18px;">info</span>
+        <span><strong>{{ 'INVENTORY.NOTE' | translate }}</strong> {{ 'INVENTORY.NOTE_DESC' | translate }}</span>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Product ID</label>
+          <input type="text" class="form-control" [(ngModel)]="editProduct.id" disabled
+            style="background: var(--color-gray-50)">
+        </div>
+        <div class="form-group">
+          <label>Product Name</label>
+          <input type="text" class="form-control" [(ngModel)]="editProduct.name">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Category</label>
+          <input type="text" class="form-control" [(ngModel)]="editProduct.category">
+        </div>
+        <div class="form-group">
+          <label>Warehouse</label>
+          <input type="text" class="form-control" [(ngModel)]="editProduct.warehouse">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Current Stock (units)</label>
+          <input type="text" class="form-control" [(ngModel)]="editProduct.stock">
+        </div>
+        <div class="form-group">
+          <label>Storage Temperature</label>
+          <input type="text" class="form-control" [(ngModel)]="editProduct.temp">
+        </div>
+      </div>
+      <div class="form-group mt-2">
+        <label>Product Status</label>
+        <div style="display:flex; gap: 16px; background: var(--color-gray-50); padding: 12px; border-radius: 8px;">
+          <label style="display:flex; align-items:center; gap: 8px; font-weight:normal; cursor:pointer;"><input
+              type="radio" name="status" value="Active" [(ngModel)]="editProduct.status"> Active</label>
+          <label style="display:flex; align-items:center; gap: 8px; font-weight:normal; cursor:pointer;"><input
+              type="radio" name="status" value="Inactive" [(ngModel)]="editProduct.status"> Inactive</label>
+          <label style="display:flex; align-items:center; gap: 8px; font-weight:normal; cursor:pointer;"><input
+              type="radio" name="status" value="Discontinued" [(ngModel)]="editProduct.status"> Discontinued</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" style="display: flex; gap: 12px;">
+      <button class="btn-cancel" style="flex:1" (click)="closeEditProduct()">{{ 'INVENTORY.CANCEL' | translate }}</button>
+      <button class="btn-submit" style="flex:1" (click)="saveEditProduct()">{{ 'INVENTORY.SAVE_CHANGES' | translate }}</button>
+    </div>
+  </div>
+</div>
+}
+
+<!-- Add New Product Modal -->
+@if (isAddProductOpen()) {
+<div class="modal-overlay" (click)="closeAddProduct()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="modal-title">{{ 'INVENTORY.MODAL_ADD_TITLE' | translate }}</h3>
+      <button class="btn-close" (click)="closeAddProduct()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Product Name</label>
+          <input type="text" class="form-control" [(ngModel)]="newProduct.name" placeholder="e.g., Fresh Strawberries">
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <input type="text" class="form-control" [(ngModel)]="newProduct.category">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Warehouse</label>
+          <input type="text" class="form-control" [(ngModel)]="newProduct.warehouse">
+        </div>
+        <div class="form-group">
+          <label>Initial Stock (units)</label>
+          <input type="text" class="form-control" [(ngModel)]="newProduct.stock" placeholder="e.g., 500">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Expiration Date</label>
+          <input type="date" class="form-control" [(ngModel)]="newProduct.exp">
+        </div>
+        <div class="form-group">
+          <label>Storage Temperature</label>
+          <input type="text" class="form-control" [(ngModel)]="newProduct.temp" placeholder="e.g., 3°C">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" style="display: flex; gap: 12px;">
+      <button class="btn-cancel" style="flex:1" (click)="closeAddProduct()">{{ 'INVENTORY.CANCEL' | translate }}</button>
+      <button class="btn-submit" style="flex:1" (click)="addProduct()">{{ 'INVENTORY.ADD_PRODUCT' | translate }}</button>
+    </div>
+  </div>
+</div>
+}
+
+<link
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+  rel="stylesheet" />
