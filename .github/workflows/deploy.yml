@@ -33,7 +33,7 @@ jobs:
           cache: npm
 
       - name: Instalar dependencias
-        run: npm install # Cambiado a npm install para evitar fallos estrictos del lockfile
+        run: npm install --legacy-peer-deps # Cambiado a npm install para evitar fallos estrictos del lockfile
 
       - name: Compilar Angular
         run: npx ng build refrio-frontend --configuration production --base-href /refrio-frontend/
