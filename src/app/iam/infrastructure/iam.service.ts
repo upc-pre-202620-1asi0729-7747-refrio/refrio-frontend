@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable } from 'rxjs';
 import { delay, map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { SignInRequest } from './sign-in.request';
@@ -16,21 +16,7 @@ export class IamService {
   constructor(private http: HttpClient) {}
 
   signIn(request: SignInRequest): Observable<SignInResponse> {
-    return this.http.get<any[]>(`${this.basePath}/users?username=${request.username}&password=${request.password}`).pipe(
-      delay(800),
-      map(users => {
-        if (users && users.length > 0) {
-          const user = users[0];
-          const res = new SignInResponse();
-          res.token = user.token; // Using the mock token stored in db.json
-          res.tokenType = 'Bearer';
-          res.expiresIn = 3600;
-          return res;
-        } else {
-          throw { error: { message: 'Invalid credentials' } };
-        }
-      })
-    );
+    return this.http.post<SignInResponse>(this.basePath + '/session', request);
   }
 
   signUp(request: SignUpRequest): Observable<SignUpResponse> {
@@ -42,8 +28,7 @@ export class IamService {
       lastName: request.lastName,
       role: request.role,
       subscriptionPlan: request.subscriptionPlan,
-      sede: request.sede,
-      token: 'mock-jwt-token-distrib'
+      sede: request.sede
     };
     
     return this.http.post<any>(`${this.basePath}/users`, newUser).pipe(
@@ -59,27 +44,6 @@ export class IamService {
   }
 
   getCurrentUser(): Observable<UsersResponse> {
-    const token = localStorage.getItem('refrio_token');
-    
-    return this.http.get<any[]>(`${this.basePath}/users?token=${token}`).pipe(
-      delay(500),
-      map(users => {
-        if (users && users.length > 0) {
-          const user = users[0];
-          const res = new UsersResponse();
-          res.id = user.id;
-          res.username = user.username;
-          res.email = user.email;
-          res.firstName = user.firstName;
-          res.lastName = user.lastName;
-          res.role = user.role;
-          res.subscriptionPlan = user.subscriptionPlan;
-          res.sede = user.sede;
-          return res;
-        } else {
-          throw new Error('User not found');
-        }
-      })
-    );
+    return this.http.get<UsersResponse>(this.basePath + '/session');
   }
 }

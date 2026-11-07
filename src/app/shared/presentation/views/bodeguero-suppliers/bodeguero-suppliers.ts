@@ -72,21 +72,21 @@ import { TranslatePipe } from '../../../pipes/translate.pipe';
           </div>
           <div class="modal-body">
             <div class="form-group">
-              <label>Supplier Code</label>
-              <input type="text" class="form-control" [(ngModel)]="newSupplier.code" placeholder="e.g. REF-4056-4567">
+              <label>{{ 'OPERATIONS.SUPPLIER_CODE' | translate }}</label>
+              <input type="text" class="form-control" [(ngModel)]="newSupplier.code" [placeholder]="'OPERATIONS.EG_REF40564567' | translate">
             </div>
             <div class="form-group">
-              <label>Name Supplier</label>
-              <input type="text" class="form-control" [(ngModel)]="newSupplier.name" placeholder="Enter supplier name">
+              <label>{{ 'OPERATIONS.SUPPLIER_NAME' | translate }}</label>
+              <input type="text" class="form-control" [(ngModel)]="newSupplier.name" [placeholder]="'OPERATIONS.ENTER_SUPPLIER_NAME' | translate">
             </div>
             <div class="form-group">
-              <label>Category</label>
-              <input type="text" class="form-control" [(ngModel)]="newSupplier.category" placeholder="e.g. Bebidas, General, etc.">
+              <label>{{ 'OPERATIONS.CATEGORY_2' | translate }}</label>
+              <input type="text" class="form-control" [(ngModel)]="newSupplier.category" [placeholder]="'OPERATIONS.EG_BEVERAGES_GENERAL' | translate">
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn-cancel" (click)="closeAddSupplier()">Cancel</button>
-            <button class="btn-submit" (click)="addSupplier()">Add Supplier</button>
+            <button class="btn-cancel" (click)="closeAddSupplier()">{{ 'OPERATIONS.CANCEL_2' | translate }}</button>
+            <button class="btn-submit" (click)="addSupplier()">{{ 'OPERATIONS.ADD_SUPPLIER' | translate }}</button>
           </div>
         </div>
       </div>

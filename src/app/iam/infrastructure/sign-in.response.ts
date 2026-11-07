@@ -5,4 +5,5 @@ export class SignInResponse {
   token!: string;
   tokenType!: string;
   expiresIn!: number;
+  role!: string;
 }

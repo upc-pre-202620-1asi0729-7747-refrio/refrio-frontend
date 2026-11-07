@@ -1,163 +1,223 @@
-<div class="page-view animate-fade-in">
-  <div class="breadcrumb text-muted" style="font-size:12px; margin-bottom: 8px;">
-    Shipments / <span style="color:var(--color-gray-900); font-weight:600;">{{ shipment()?.id }}</span>
-  </div>
-
-  <div style="margin-bottom: 24px;">
-    <a routerLink="/shipments" class="back-link">
-      <span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span>
-      Back to Shipments
-    </a>
-  </div>
-
-  <h1 style="font-size:24px; font-weight:700; color:var(--color-gray-900); margin-bottom: 24px;">Envío {{ shipment()?.id }}</h1>
-
-  <div class="top-cards">
-    <div class="card p-5">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-        <div style="font-size:12px; font-weight:600; color:var(--color-gray-600); display:flex; align-items:center; gap:6px;">
-          <span class="material-symbols-outlined" style="font-size:16px;">device_thermostat</span> Temperatura de Carga
-        </div>
-        <span class="badge" style="background:#dcfce7; color:#166534; padding:4px 10px;">Ideal</span>
+<div class="flow-page">
+  <a [routerLink]="ops.role() === 'Supervisor' ? '/shipments' : '/order-history'"
+    >{{ 'OPERATIONS.BACK_TO_SHIPMENTS' | translate }}</a
+  >
+  @if (shipment(); as s) {
+    <header class="flow-header">
+      <div>
+        <h1>{{ s.id }}</h1>
+        <p>{{ s.clientName || ('OPERATIONS.HISTORICAL_SHIPMENT' | translate) }} · {{ s.route }}</p>
       </div>
-      <div style="display:flex; align-items:baseline; gap:4px; margin-bottom:12px;">
-        <span style="font-size:42px; font-weight:800; color:var(--color-gray-900); letter-spacing:-0.03em;">{{ shipment()?.temperature?.replace('°C', '') || '3.2' }}</span>
-        <span style="font-size:20px; font-weight:700; color:var(--color-gray-900);">°C</span>
-      </div>
-      <div style="background:#dcfce7; color:#166534; font-size:11px; font-weight:600; font-family:monospace; padding:8px 12px; border-radius:4px; display:inline-block;">
-        Rango: 2.0°C - 4.0°C
-      </div>
-    </div>
-
-    <div class="card p-5">
-      <div style="font-size:12px; font-weight:600; color:var(--color-gray-600); display:flex; align-items:center; gap:6px; margin-bottom:12px;">
-        <span class="material-symbols-outlined" style="font-size:16px;">local_shipping</span> Tiempo Estimado (ETA)
-      </div>
-      <div style="display:flex; align-items:baseline; gap:4px; margin-top:20px;">
-        <span style="font-size:42px; font-weight:800; color:var(--color-gray-900); letter-spacing:-0.03em;">{{ shipment()?.eta?.split(' ')?.[0] || '12:30' }}</span>
-        <span style="font-size:20px; font-weight:700; color:var(--color-gray-900);">{{ shipment()?.eta?.split(' ')?.[1] || 'PM' }}</span>
-        <span style="font-size:13px; font-weight:600; color:var(--color-primary); margin-left:12px;">(Llega pronto)</span>
-      </div>
-    </div>
-
-    <div class="card p-5">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-        <div style="font-size:12px; font-weight:600; color:var(--color-gray-600); display:flex; align-items:center; gap:6px;">
-          <span class="material-symbols-outlined" style="font-size:16px;">package</span> Carga Transportada
-        </div>
-        <span style="background:var(--color-gray-100); color:var(--color-gray-700); padding:4px 8px; border-radius:4px; font-size:10px; font-family:monospace; font-weight:600;">Lote {{ shipment()?.batchNumber || 'BT-4521' }}</span>
-      </div>
-      <div style="display:flex; align-items:baseline; gap:8px; margin-top:20px;">
-        <span style="font-size:42px; font-weight:800; color:var(--color-gray-900); letter-spacing:-0.03em;">150</span>
-        <span style="font-size:20px; font-weight:700; color:var(--color-gray-700);">cajas</span>
-        <span style="font-size:13px; color:var(--color-gray-500); margin-left:8px;">(300 kg neto)</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="main-grid">
-    <div class="left-col">
-      <div class="card" style="padding:var(--space-6);">
-        <h2 style="font-size:18px; font-weight:700; color:var(--color-gray-900);">Progreso del Recorrido en Vivo</h2>
-        <p class="text-muted" style="font-size:12px; margin-top:4px; margin-bottom:24px;">Ruta autorizada: {{ shipment()?.route || 'Lima Central a Mercado Surco' }}</p>
-
-        <div class="timeline-container">
-          <div class="timeline-step active">
-            <div class="step-icon"><span class="material-symbols-outlined">check</span></div>
-            <div class="step-content">
-              <div class="step-time">11:15 AM · Completado</div>
-              <div class="step-title">Salida {{ origin }}</div>
-              <div class="step-desc">Despacho validado a 3.0°C</div>
-            </div>
-          </div>
-          <div class="timeline-line active"></div>
-          <div class="timeline-step in-progress">
-            <div class="step-icon"><span class="material-symbols-outlined">sync</span></div>
-            <div class="step-content">
-              <div class="step-time">11:50 AM · En Curso</div>
-              <div class="step-title">Av. Javier Prado Este</div>
-              <div class="step-desc">Lectura actual: 3.2°C estable</div>
-            </div>
-          </div>
-          <div class="timeline-line"></div>
-          <div class="timeline-step pending">
-            <div class="step-icon"><span class="material-symbols-outlined">flag</span></div>
-            <div class="step-content">
-              <div class="step-time">{{ shipment()?.eta || '12:30 PM' }} · Estimado</div>
-              <div class="step-title">Llegada {{ destination }}</div>
-              <div class="step-desc">Andén de descarga #2</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="map-container" style="position:relative; width:100%; height:320px; border-radius:12px; overflow:hidden; margin-top:24px; background:#e5e7eb;">
-          <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=800&auto=format&fit=crop" alt="Map" style="width:100%; height:100%; object-fit:cover; opacity:0.8;">
-          <div class="map-overlay">
-            <div style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; background:var(--color-primary-50); color:var(--color-primary); border-radius:8px; margin-right:12px;">
-              <span class="material-symbols-outlined" style="font-size:18px;">navigation</span>
-            </div>
+      <span class="badge badge-info">{{ labels[s.status] | translate }}</span>
+    </header>
+    @if (success()) {
+      <p class="flow-success" role="status">{{ success() | translate }}</p>
+    }
+    @if (error() && !receiptOpen()) {
+      <p class="flow-error" role="alert">{{ error() | translate }}</p>
+    }
+    <section class="flow-card">
+      <h2>{{ 'OPERATIONS.SHIPMENT_PROGRESS' | translate }}</h2>
+      <ol class="flow-steps">
+        @for (status of steps(); track status; let i = $index) {
+          <li
+            [class.done]="!!eventAt(status) || (!s.timeline?.length && i < steps().indexOf(s.status))"
+            [class.current]="s.status === status"
+            [attr.aria-current]="s.status === status ? 'step' : null"
+          >
+            <span>{{ i + 1 }}</span>
             <div>
-              <div style="font-size:12px; font-weight:700; color:var(--color-gray-900);">{{ shipment()?.vehicle || 'Furgón #04' }} en marcha</div>
-              <div style="font-size:10px; color:var(--color-gray-600);">A 4.2 km de {{ destination }}</div>
+              {{ labels[status] | translate }}<small>{{ eventAt(status) | date: 'dd/MM HH:mm' }}</small>
             </div>
-            <div style="margin-left:auto; background:#dcfce7; color:#166534; font-size:11px; font-weight:700; padding:4px 8px; border-radius:20px;">
-              42 km/h
+          </li>
+        }
+      </ol>
+      @if (s.allocations?.length) {
+        @if (s.status === 'Rejected') {
+          <p class="flow-error">
+            {{ 'OPERATIONS.THE_DELIVERY_WAS_REJECTED_RESERVED_STOCK_IS_NOT_AUTOMATICALLY' | translate }}
+          </p>
+        }
+        @if (ops.role() === 'Supervisor' && nextStatus(s.status)) {
+          <button class="btn-primary" (click)="advance()">
+            {{ s.status === 'Preparing'
+                ? ('OPERATIONS.CONFIRM_VEHICLE_DEPARTURE' | translate)
+                : ('OPERATIONS.RECORD_ARRIVAL_AT_DESTINATION' | translate) }}
+          </button>
+        }
+        @if (ops.role() === 'Minorista' && s.status === 'Awaiting Receipt') {
+          <button class="btn-primary" (click)="startReceipt()">{{ 'OPERATIONS.REVIEW_AND_RECEIVE_GOODS' | translate }}</button>
+        }
+        @if (ops.role() === 'Minorista' && s.status === 'Preparing') {
+          <p class="flow-hint">{{ 'OPERATIONS.THE_DISTRIBUTOR_IS_PREPARING_YOUR_ORDER' | translate }}</p>
+        }
+        @if (ops.role() === 'Minorista' && s.status === 'In Transit') {
+          <p class="flow-hint">
+            {{ 'OPERATIONS.YOU_CAN_CONFIRM_RECEIPT_ONCE_THE_DISTRIBUTOR_RECORDS_ARRIVAL' | translate }}
+          </p>
+        }
+      } @else {
+        <p class="flow-hint">{{ 'OPERATIONS.HISTORICAL_SHIPMENT_PROGRESS' | translate }}</p>
+      }
+    </section>
+    <div class="flow-grid">
+      <section class="flow-card">
+        <h2>{{ 'OPERATIONS.CARGO_AND_BATCHES' | translate }}</h2>
+        @for (a of s.allocations; track a.batchId) {
+          <div class="flow-picking">
+            <div>
+              <strong>{{ product(a.productId) }}</strong
+              ><small>{{ 'OPERATIONS.BATCH_0_1_UNITS' | translate : [(a.batchId), (a.quantity)] }}</small
+              ><small
+                >{{ 'OPERATIONS.EXPIRES_0_1' | translate : [(batch(a.batchId)?.expirationDate), (batch(a.batchId)?.location)] }}</small
+              ><small>{{ 'OPERATIONS.RECORDED_TEMPERATURE_0' | translate : [(s.temperature)] }}</small>
             </div>
+            <a
+              [routerLink]="['/inventory', a.productId, 'batch', a.batchId]"
+              [hidden]="ops.role() !== 'Supervisor'"
+              >{{ 'OPERATIONS.VIEW_BATCH' | translate }}</a
+            >
           </div>
-        </div>
-      </div>
+        } @empty {
+          <dl class="flow-summary">
+            <dt>{{ 'OPERATIONS.PRODUCT' | translate }}</dt>
+            <dd>{{ s.product }}</dd>
+            <dt>{{ 'OPERATIONS.BATCH' | translate }}</dt>
+            <dd>{{ s.batchNumber || ('OPERATIONS.NOT_RECORDED' | translate) }}</dd>
+            <dt>{{ 'OPERATIONS.QUANTITY_UNITS' | translate }}</dt>
+            <dd>{{ 'OPERATIONS.NOT_RECORDED' | translate }}</dd>
+            <dt>{{ 'OPERATIONS.EXPIRATION' | translate }}</dt>
+            <dd>{{ 'OPERATIONS.NOT_RECORDED' | translate }}</dd>
+            <dt>{{ 'OPERATIONS.TEMPERATURE' | translate }}</dt>
+            <dd>{{ s.temperature || ('OPERATIONS.NOT_RECORDED' | translate) }}</dd>
+          </dl>
+        }
+      </section>
+      <section class="flow-card">
+        <h2>{{ 'OPERATIONS.TRANSPORT' | translate }}</h2>
+        <dl class="flow-summary">
+          <dt>{{ 'OPERATIONS.ROUTE' | translate }}</dt>
+          <dd>{{ s.route }}</dd>
+          <dt>{{ 'OPERATIONS.DRIVER' | translate }}</dt>
+          <dd>{{ s.driver }}</dd>
+          <dt>{{ 'OPERATIONS.VEHICLE' | translate }}</dt>
+          <dd>{{ s.vehicle }}</dd>
+          <dt>{{ 'OPERATIONS.ESTIMATED_DELIVERY' | translate }}</dt>
+          <dd>{{ s.createdAt ? (s.eta | date: 'dd/MM/yyyy HH:mm') : s.eta }}</dd>
+        </dl>
+        <p class="flow-hint">
+          {{ 'OPERATIONS.PROGRESS_UPDATES_WHEN_USERS_RECORD_EACH_STEP_GPS_TRACKING' | translate }}
+        </p>
+      </section>
     </div>
-
-    <div class="right-col">
-      <div class="card p-5 mb-4">
-        <h2 style="font-size:16px; font-weight:700; color:var(--color-gray-900); margin-bottom:16px;">Conductor & Vehículo</h2>
-        
-        <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
-          <div style="position:relative;">
-            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100&auto=format&fit=crop" alt="Driver" style="width:48px; height:48px; border-radius:50%; object-fit:cover;">
-            <div style="position:absolute; bottom:0; right:0; width:12px; height:12px; background:#16a34a; border:2px solid white; border-radius:50%;"></div>
-          </div>
+    @if (s.receipt; as receipt) {
+      <section class="flow-card">
+        <h2>{{ 'OPERATIONS.RECEIPT_OUTCOME' | translate }}</h2>
+        <p>
+          {{ 'OPERATIONS.0_BY_1_2' | translate : [(receipt.decision === 'accepted'
+              ? ('OPERATIONS.ACCEPTED' | translate)
+              : receipt.decision === 'observed'
+                ? ('OPERATIONS.ACCEPTED_WITH_NOTES' | translate)
+                : ('OPERATIONS.REJECTED_2' | translate)), (receipt.actor), (receipt.at | date: 'dd/MM/yyyy HH:mm')] }}
+        </p>
+        <p>{{ receipt.notes || ('OPERATIONS.FULL_RECEIPT_NO_NOTES' | translate) }}</p>
+        @for (a of s.allocations; track a.batchId; let index = $index) {
+          <p>{{ 'OPERATIONS.RECEIPT_BATCH_COMPARISON' | translate : [a.batchId, a.quantity, receipt.quantities[index]?.quantity ?? 0] }}</p>
+        }
+      </section>
+    }
+    @if (incidents().length) {
+      <section class="flow-card">
+        <h2>{{ 'OPERATIONS.SHIPMENT_INCIDENTS' | translate }}</h2>
+        @for (alert of incidents(); track alert.id) {
+          <a class="flow-picking" [routerLink]="['/alerts', alert.id]">
+            <div><strong>{{ alert.type | translate }}</strong><small>{{ alert.message }}</small></div>
+            <span aria-hidden="true">→</span>
+          </a>
+        }
+      </section>
+    }
+    @if (ops.role() === 'Supervisor') {
+    <section class="flow-card">
+      <h2>{{ 'OPERATIONS.SHIPMENT_HISTORY' | translate }}</h2>
+      @for (e of history; track e.id) {
+        <div class="flow-history">
+          <span>{{ e.occurredAt | date: 'dd/MM HH:mm' }}</span>
           <div>
-            <div style="font-size:14px; font-weight:700; color:var(--color-gray-900);">{{ shipment()?.driver || 'Carlos Mendoza' }}</div>
-            <div style="font-size:12px; color:var(--color-gray-600);">+51 987 654 321</div>
-            <div style="font-size:10px; font-weight:600; color:#16a34a; margin-top:2px;">Conductor Verificado Refrio</div>
+            <strong>{{ e.name | translate }}</strong>
+            <p>{{ e.description }}</p>
           </div>
         </div>
-
-        <div style="background:var(--color-gray-50); padding:12px; border-radius:8px; display:flex; justify-content:space-between; margin-bottom:16px;">
-          <div>
-            <div style="font-size:10px; color:var(--color-gray-500); margin-bottom:2px;">Vehículo</div>
-            <div style="font-size:12px; font-weight:700; color:var(--color-gray-900);">{{ shipment()?.vehicle || 'Furgón #04' }}</div>
-          </div>
-          <div>
-            <div style="font-size:10px; color:var(--color-gray-500); margin-bottom:2px;">Placa</div>
-            <div style="font-size:12px; font-weight:700; color:var(--color-gray-900);">{{ licensePlate }}</div>
-          </div>
-        </div>
-
-        <button class="btn-whatsapp">
-          <span class="material-symbols-outlined" style="font-size:16px;">chat</span> Mensaje WhatsApp al Chofer
-        </button>
-      </div>
-
-      <div class="card p-5">
-        <h2 style="font-size:16px; font-weight:700; color:var(--color-gray-900); margin-bottom:16px;">Detalle del Producto</h2>
-        
-        <div style="display:flex; gap:12px; margin-bottom:20px;">
-          <img src="https://images.unsplash.com/photo-1518118014877-c37073eb4ea9?q=80&w=100&auto=format&fit=crop" alt="Product" style="width:64px; height:64px; border-radius:8px; object-fit:cover;">
-          <div>
-            <div style="font-size:13px; font-weight:700; color:var(--color-primary-dark); margin-bottom:4px;">{{ shipment()?.product || 'Fresas / Berries Selectas' }}</div>
-            <div style="font-size:11px; color:var(--color-gray-600); margin-bottom:2px;">Lote: {{ shipment()?.batchNumber || 'BT-4521' }}</div>
-            <div style="font-size:11px; color:var(--color-gray-600);">Vence: 28 Abr</div>
-          </div>
-        </div>
-        
-        <div style="border-top:1px solid var(--color-gray-100); padding-top:16px; display:flex; justify-content:space-between; align-items:center;">
-          <div style="font-size:11px; color:var(--color-gray-500);">Responsable en<br>tienda:</div>
-          <div style="font-size:11px; font-weight:600; color:var(--color-primary-dark); text-align:right;">{{ storeManager }}<br>({{ destination }})</div>
-        </div>
-      </div>
-    </div>
-  </div>
+      } @empty {
+        <p class="flow-hint">{{ 'OPERATIONS.NO_EVENTS_RECORDED_FOR_THIS_HISTORICAL_SHIPMENT' | translate }}</p>
+      }
+    </section>
+    }
+  } @else {
+    <p class="flow-empty">
+      {{ ops.database.loading() ? ('OPERATIONS.LOADING_SHIPMENT' | translate) : ('OPERATIONS.SHIPMENT_NOT_FOUND_FOR_YOUR_ACCOUNT' | translate) }}
+    </p>
+  }
 </div>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+@if (receiptOpen()) {
+  <div class="modal-overlay">
+    <section class="flow-dialog" role="dialog" aria-modal="true" aria-labelledby="receipt-title">
+      <header class="flow-header">
+        <h2 id="receipt-title">
+          {{ receiptStep() ? ('OPERATIONS.CONFIRM_RECEIPT' | translate) : ('OPERATIONS.GOODS_INSPECTION' | translate) }}
+        </h2>
+        <button class="btn-secondary" (click)="receiptOpen.set(false)">{{ 'OPERATIONS.CLOSE' | translate }}</button>
+      </header>
+      <ol class="flow-steps">
+        <li [class.current]="receiptStep() === 0"><span>1</span>{{ 'OPERATIONS.INSPECT' | translate }}</li>
+        <li [class.current]="receiptStep() === 1"><span>2</span>{{ 'OPERATIONS.CONFIRM' | translate }}</li>
+      </ol>
+      @if (error()) {
+        <p class="flow-error" role="alert">{{ error() | translate }}</p>
+      }
+      @if (receiptStep() === 0) {
+        <label class="flow-field"
+          >{{ 'OPERATIONS.OUTCOME' | translate }}<select [(ngModel)]="decision" (ngModelChange)="chooseDecision()">
+            <option value="accepted">{{ 'OPERATIONS.ACCEPT_ALL' | translate }}</option>
+            <option value="observed">{{ 'OPERATIONS.ACCEPT_WITH_NOTES' | translate }}</option>
+            <option value="rejected">{{ 'OPERATIONS.REJECT' | translate }}</option>
+          </select></label
+        >
+        @for (a of quantities; track a.batchId) {
+          <label class="flow-field"
+            >{{ 'OPERATIONS.0_1_UNITS_RECEIVED' | translate : [(a.batchId), (product(a.productId))] }}<input
+              type="number"
+              min="0"
+              step="1"
+              [(ngModel)]="a.quantity"
+              [disabled]="decision !== 'observed'"
+          /></label>
+        }
+        <label class="flow-field"
+          >{{ 'OPERATIONS.NOTES_REASON' | translate }}<textarea
+            [(ngModel)]="notes"
+            [placeholder]="'OPERATIONS.DESCRIBE_DAMAGE_QUANTITY_DIFFERENCES_OR_ARRIVAL_CONDITIONS' | translate"
+          ></textarea>
+        </label>
+        <footer class="flow-footer">
+          <button class="btn-secondary" (click)="receiptOpen.set(false)">{{ 'OPERATIONS.CANCEL' | translate }}</button
+          ><button class="btn-primary" (click)="review()">{{ 'OPERATIONS.REVIEW_OUTCOME' | translate }}</button>
+        </footer>
+      } @else {
+        <div class="flow-notice">
+          {{ decision === 'rejected'
+              ? ('OPERATIONS.NO_UNITS_WILL_BE_ADDED_TO_INVENTORY' | translate)
+              : ('OPERATIONS.ONLY_ACCEPTED_QUANTITIES_WILL_BE_ADDED_TO_YOUR_INVENTORY' | translate) }}
+        </div>
+        @for (a of quantities; track a.batchId) {
+          <p>{{ 'OPERATIONS.0_1_UNITS' | translate : [(a.batchId), (a.quantity)] }}</p>
+        }
+        <p>{{ notes }}</p>
+        <footer class="flow-footer">
+          <button class="btn-secondary" (click)="receiptStep.set(0)">{{ 'OPERATIONS.BACK' | translate }}</button
+          ><button class="btn-primary" (click)="confirmReceipt()">{{ 'OPERATIONS.CONFIRM_RECEIPT' | translate }}</button>
+        </footer>
+      }
+    </section>
+  </div>
+}

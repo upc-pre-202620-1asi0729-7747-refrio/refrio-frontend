@@ -1,10 +1,10 @@
-import { Component, computed, inject, signal, OnInit } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../../../environments/environment';
 import { IamStore } from '../../../../iam/application/iam.store';
+import { OperationalMonitoringService } from '../../../../events/application/operational-monitoring.service';
 import { TranslationService } from '../../../services/translation.service';
 import { TranslatePipe } from '../../../pipes/translate.pipe';
+import { OperationsApiService } from '../../../../operations/application/operations-api.service';
 
 interface NavItem {
   label: string;
@@ -19,40 +19,38 @@ interface NavItem {
   templateUrl: './layout.html',
   styleUrl: './layout.css',
 })
-export class LayoutComponent implements OnInit {
+export class LayoutComponent {
+  database = inject(OperationsApiService);
   iamStore = inject(IamStore);
   router = inject(Router);
   translateService = inject(TranslationService);
-  private http = inject(HttpClient);
-  
+  private monitoring = inject(OperationalMonitoringService);
+
   sidebarOpen = signal(true);
   searchQuery = signal('');
-  notificationCount = signal(3);
   showBodegueroNotification = signal(false);
   showNotificationDropdown = signal(false);
   showProfileDropdown = signal(false);
   showQrModal = signal(false);
-  criticalAlerts = signal<any[]>([]);
-
-  ngOnInit() {
-    this.http.get<any[]>(`${environment.serverBasePath}/alerts`).subscribe({
-      next: (data) => {
-        const critical = data.filter(a => a.severity === 'Critical');
-        this.criticalAlerts.set(critical);
-        if (this.iamStore.currentUser()?.role !== 'Minorista') {
-          this.notificationCount.set(critical.length);
-        }
-      }
-    });
-  }
+  notificationAlerts = computed(() =>
+    this.monitoring.alertsFor(this.iamStore.currentUser()?.role).slice(0, 6),
+  );
+  notificationCount = computed(
+    () => this.monitoring.alertsFor(this.iamStore.currentUser()?.role).length,
+  );
+  topAlarm = computed(() =>
+    this.monitoring
+      .alertsFor(this.iamStore.currentUser()?.role)
+      .find((alert) => alert.severity === 'Critical'),
+  );
 
   toggleNotification() {
-    this.showNotificationDropdown.update(v => !v);
+    this.showNotificationDropdown.update((v) => !v);
     this.showProfileDropdown.set(false);
   }
 
   toggleProfileDropdown() {
-    this.showProfileDropdown.update(v => !v);
+    this.showProfileDropdown.update((v) => !v);
     this.showNotificationDropdown.set(false);
   }
 
@@ -72,34 +70,34 @@ export class LayoutComponent implements OnInit {
 
   navItems = computed(() => {
     const role = this.iamStore.currentUser()?.role;
-    
+
     // Si es bodeguero / minorista
     if (role === 'Minorista') {
       return [
         { label: 'Dashboard', icon: 'dashboard', route: '/bodeguero-dashboard' },
-        { label: 'Inventory',  icon: 'inventory_2', route: '/inventory' },
+        { label: 'Inventory', icon: 'inventory_2', route: '/inventory' },
         { label: 'Order History', icon: 'local_shipping', route: '/order-history' },
-        { label: 'Suppliers',  icon: 'people', route: '/bodeguero-suppliers' },
+        { label: 'Alerts', icon: 'warning', route: '/alerts' },
+        { label: 'Suppliers', icon: 'people', route: '/bodeguero-suppliers' },
       ];
     }
-    
+
     // Por defecto (Distribuidor / Supervisor)
     return [
       { label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
-      { label: 'Inventory',  icon: 'inventory_2', route: '/inventory' },
-      { label: 'Shipments',  icon: 'local_shipping', route: '/shipments' },
-      { label: 'Clients',  icon: 'people', route: '/suppliers' },
-      { label: 'Analytics',  icon: 'bar_chart', route: '/analytics' },
-      { label: 'Alerts',     icon: 'warning', route: '/alerts' },
+      { label: 'Inventory', icon: 'inventory_2', route: '/inventory' },
+      { label: 'Shipments', icon: 'local_shipping', route: '/shipments' },
+      { label: 'Clients', icon: 'people', route: '/suppliers' },
+      { label: 'Analytics', icon: 'bar_chart', route: '/analytics' },
+      { label: 'Alerts', icon: 'warning', route: '/alerts' },
+      { label: 'Events', icon: 'history', route: '/events' },
     ];
   });
 
-  bottomItems: NavItem[] = [
-    { label: 'Settings', icon: 'settings', route: '/settings' },
-  ];
+  bottomItems: NavItem[] = [{ label: 'Settings', icon: 'settings', route: '/settings' }];
 
   toggleSidebar(): void {
-    this.sidebarOpen.update(v => !v);
+    this.sidebarOpen.update((v) => !v);
   }
 
   onSearch(event: Event): void {

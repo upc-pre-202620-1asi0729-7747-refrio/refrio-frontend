@@ -1,136 +1,115 @@
-<div class="page-view animate-fade-in">
-  <div class="page-header">
+<div class="flow-page">
+  <header class="flow-header">
     <div>
-      <h1 class="page-title">{{ 'DASHBOARD.TITLE' | translate }}</h1>
-      <p class="page-subtitle">{{ 'DASHBOARD.SUBTITLE' | translate }}</p>
+      <h1>{{ ops.role() === 'Minorista' ? ('OPERATIONS.YOUR_OPERATIONS_TODAY' | translate) : ('OPERATIONS.DISTRIBUTION_OVERVIEW' | translate) }}</h1>
+      <p>{{ 'OPERATIONS.INVENTORY_ORDERS_AND_INCIDENTS_UPDATE_WITH_EACH_TRANSACTION' | translate }}</p>
     </div>
+    <a
+      class="btn-primary"
+      [routerLink]="ops.role() === 'Supervisor' ? '/shipments' : '/order-history'"
+      >{{ ops.role() === 'Supervisor' ? ('OPERATIONS.MANAGE_SHIPMENTS' | translate) : ('OPERATIONS.REVIEW_MY_ORDERS' | translate) }}</a
+    >
+  </header>
+  <div class="flow-metrics">
+    <a class="flow-card" routerLink="/inventory"
+      ><span>{{ 'OPERATIONS.UNITS_IN_STOCK' | translate }}</span><strong>{{ ops.totalUnits() }}</strong
+      ><small>{{ 'OPERATIONS.0_ELIGIBLE_FOR_DISPATCH' | translate : [(ops.availableUnits())] }}</small></a
+    ><a
+      class="flow-card"
+      [routerLink]="ops.role() === 'Supervisor' ? '/shipments' : '/order-history'"
+      ><span>{{ 'OPERATIONS.PENDING_SHIPMENTS' | translate }}</span><strong>{{ pending().length }}</strong
+      ><small>{{ 'OPERATIONS.PREPARING_IN_TRANSIT_OR_AWAITING_RECEIPT' | translate }}</small></a
+    ><a class="flow-card" routerLink="/alerts"
+      ><span>{{ 'OPERATIONS.ACTIVE_INCIDENTS' | translate }}</span><strong>{{ activeAlerts().length }}</strong
+      ><small>{{ 'OPERATIONS.REVIEW_AND_DOCUMENT_ACTIONS' | translate }}</small></a
+    >
   </div>
-
-  <div class="card p-5">
-    <div class="card-header-flex mb-4">
-      <div>
-        <h2 class="card-title">{{ 'DASHBOARD.TRENDS_TITLE' | translate }}</h2>
-        <p class="text-muted" style="font-size:12px; margin-top:4px;">{{ 'DASHBOARD.TRENDS_SUBTITLE' | translate }}</p>
-      </div>
-      <div class="toggle-group">
-        <button class="btn-toggle" [class.active]="activeTab() === 'Daily'" (click)="setTab('Daily')">{{
-          'DASHBOARD.DAILY' | translate }}</button>
-        <button class="btn-toggle" [class.active]="activeTab() === 'Weekly'" (click)="setTab('Weekly')">{{
-          'DASHBOARD.WEEKLY' | translate }}</button>
-        <button class="btn-toggle" [class.active]="activeTab() === 'Monthly'" (click)="setTab('Monthly')">{{
-          'DASHBOARD.MONTHLY' | translate }}</button>
-      </div>
-    </div>
-
-    <!-- Chart -->
-    <div class="chart-container">
-      <div class="y-axis">
-        @for (label of yAxisLabels; track $index) {
-          <span>{{ label | number }}</span>
-        }
-      </div>
-      <div class="chart-area">
-        <div class="chart-bars">
-          @for (point of currentChartData(); track point.label) {
-            <div class="bar-group">
-              <div class="bar bar-inventory" [style.height.%]="(point.inventory / maxValue) * 100"></div>
-              <div class="bar bar-shipped" [style.height.%]="(point.shipped / maxValue) * 100"></div>
-            </div>
-          }
-        </div>
-        <div class="x-axis">
-          @for (point of currentChartData(); track point.label) {
-            <span [innerHTML]="formatLabel(point.label)"></span>
-          }
-        </div>
-      </div>
-    </div>
-    <div class="chart-legend">
-      <div class="legend-item"><span class="legend-dot" style="background:var(--color-primary-dark)"></span> {{
-        'DASHBOARD.INVENTORY_VOL' | translate }}</div>
-      <div class="legend-item"><span class="legend-dot" style="background:var(--color-primary-light)"></span> {{
-        'DASHBOARD.SHIPPED_UNITS' | translate }}</div>
-    </div>
-  </div>
-
-  <div class="top-cards-grid">
-    <div class="card p-5">
-      <h2 class="card-title mb-4">{{ 'DASHBOARD.INV_CATEGORY' | translate }}</h2>
-      @for (cat of categories; track cat.name) {
-      <div class="progress-item">
-        <div class="progress-labels"><span>{{ cat.name }}</span><span>{{ cat.percentage }}%</span></div>
-        <div class="progress-bar">
-          <div class="progress-fill" [style.width.%]="cat.percentage" [style.background]="cat.color"></div>
-        </div>
-      </div>
+  <section class="flow-card">
+    <h2>{{ 'OPERATIONS.CONTINUE_YOUR_WORK' | translate }}</h2>
+    <div class="flow-chips">
+      <a routerLink="/inventory">{{ (ops.role() === 'Supervisor' ? 'OPERATIONS.1_REGISTER_BATCHES' : 'OPERATIONS.1_RECEIVE_BATCHES') | translate }}</a
+      ><a [routerLink]="ops.role() === 'Supervisor' ? '/shipments' : '/order-history'"
+        >2. {{ ops.role() === 'Supervisor' ? ('OPERATIONS.PREPARE_AND_DISPATCH' | translate) : ('OPERATIONS.CONFIRM_RECEIPT' | translate) }} →</a
+      ><a routerLink="/alerts">{{ 'OPERATIONS.3_HANDLE_INCIDENTS' | translate }}</a
+      >
+      @if (ops.role() === 'Supervisor') {
+        <a routerLink="/events">{{ 'OPERATIONS.4_REVIEW_TRACEABILITY' | translate }}</a>
       }
     </div>
-
-    <div class="card p-5">
-      <h2 class="card-title mb-4">{{ 'DASHBOARD.WAREHOUSE_PERF' | translate }}</h2>
-      <div class="warehouse-list">
-        @for (wh of warehouses; track wh.name) {
-        <div class="warehouse-item">
-          <div class="fw-600 text-gray-900" style="margin-bottom:4px;">{{ wh.name }}</div>
-          <div class="text-muted" style="font-size:12px;">{{ 'DASHBOARD.ON_TIME' | translate }}: {{ wh.onTime }}%
-            &nbsp;&nbsp; {{ 'DASHBOARD.AVG_TEMP' | translate }}: {{ wh.avgTemp }}</div>
+  </section>
+  <div class="flow-grid">
+    <section class="flow-card">
+      <div class="flow-header">
+        <h2>{{ 'OPERATIONS.RECORDED_TRANSACTIONS' | translate }}</h2>
+        <select
+          [attr.aria-label]="'OPERATIONS.TRANSACTION_PERIOD' | translate"
+          [ngModel]="period()"
+          (ngModelChange)="period.set(+$event)"
+        >
+          <option [ngValue]="1">{{ 'OPERATIONS.LAST_24_HOURS' | translate }}</option>
+          <option [ngValue]="7">{{ 'OPERATIONS.LAST_7_DAYS' | translate }}</option>
+          <option [ngValue]="30">{{ 'OPERATIONS.LAST_30_DAYS' | translate }}</option>
+        </select>
+      </div>
+      @for (m of movements(); track m.name) {
+        <div class="flow-bar-label">
+          <span>{{ m.name | translate }}</span
+          ><strong>{{ m.count }}</strong>
         </div>
-        }
-      </div>
-    </div>
+        <div class="flow-bar">
+          <div [style.width.%]="m.count ? (m.count / (recent().length || 1)) * 100 : 0"></div>
+        </div>
+      }
+      <p class="flow-hint">
+        {{ 'OPERATIONS.0_UNITS_WASTED_IN_THIS_PERIOD_BARS_COUNT_RECORDED' | translate : [(lossUnits())] }}
+      </p>
+    </section>
+    <section class="flow-card">
+      <h2>{{ 'OPERATIONS.NEEDS_ATTENTION' | translate }}</h2>
+      @for (a of activeAlerts().slice(0, 4); track a.id) {
+        <a class="flow-picking" [routerLink]="['/alerts', a.id]"
+          ><div>
+            <strong>{{ a.type | translate }}</strong
+            ><small>{{ a.location }} · {{ a.message }}</small>
+          </div>
+          <span>→</span></a
+        >
+      } @empty {
+        <p class="flow-empty">{{ 'OPERATIONS.YOU_HAVE_NO_PENDING_INCIDENTS' | translate }}</p>
+      }
+    </section>
   </div>
-
-  <div class="card">
-    <div class="card-header-flex p-4">
-      <h2 class="card-title">{{ 'DASHBOARD.RECENT_SHIPMENTS' | translate }}</h2>
-      <div style="display:flex; gap:8px;">
-        <button class="btn-secondary" style="font-size:12px; padding: 4px 12px; border-radius: 20px;"
-          (click)="toggleStatusFilter()">
-          {{ 'DASHBOARD.FILTER_STATUS' | translate }}:
-          @if (filterStatus === 'All') { {{ 'DASHBOARD.ALL' | translate }} }
-          @if (filterStatus === 'In Transit') { {{ 'DASHBOARD.IN_TRANSIT' | translate }} }
-          @if (filterStatus === 'Delivered') { {{ 'DASHBOARD.DELIVERED' | translate }} }
-          @if (filterStatus === 'Delayed') { {{ 'DASHBOARD.DELAYED' | translate }} }
-          <span class="material-symbols-outlined" style="font-size:14px; margin-left:4px;">keyboard_arrow_down</span>
-        </button>
-      </div>
-    </div>
-    <div class="table-wrapper">
-      <table class="data-table">
+  <section class="flow-card">
+    <h2>{{ 'OPERATIONS.SHIPMENTS_TO_COMPLETE' | translate }}</h2>
+    <div class="flow-table-wrap">
+      <table class="flow-table">
         <thead>
           <tr>
-            <th>{{ 'DASHBOARD.SHIPMENT_ID' | translate }}</th>
-            <th>{{ 'DASHBOARD.PRODUCT' | translate }}</th>
-            <th>{{ 'DASHBOARD.ROUTE' | translate }}</th>
-            <th>{{ 'DASHBOARD.TEMPERATURE' | translate }}</th>
-            <th>{{ 'DASHBOARD.ETA' | translate }}</th>
-            <th>{{ 'DASHBOARD.STATUS' | translate }}</th>
-            <th>{{ 'DASHBOARD.ACTION' | translate }}</th>
+            <th>{{ 'OPERATIONS.SHIPMENT' | translate }}</th>
+            <th>{{ 'OPERATIONS.CUSTOMER_ROUTE' | translate }}</th>
+            <th>{{ 'OPERATIONS.STATUS' | translate }}</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
-          @for (shipment of filteredShipments; track shipment.id) {
-          <tr>
-            <td class="fw-600 text-gray-900">{{ shipment.id }}</td>
-            <td class="fw-600 text-gray-900">{{ shipment.product }}</td>
-            <td class="text-muted">{{ shipment.route }}</td>
-            <td class="fw-600 text-gray-900">{{ shipment.temperature }}</td>
-            <td class="text-muted">{{ shipment.eta }}</td>
-            <td>
-              <span class="badge" [class]="getStatusClass(shipment.status)">
-                @if (shipment.status === 'In Transit') { {{ 'DASHBOARD.IN_TRANSIT' | translate }} }
-                @if (shipment.status === 'Delivered') { {{ 'DASHBOARD.DELIVERED' | translate }} }
-                @if (shipment.status === 'Delayed') { {{ 'DASHBOARD.DELAYED' | translate }} }
-              </span>
-            </td>
-            <td><a href="#" class="action-link">{{ 'DASHBOARD.VIEW' | translate }}</a></td>
-          </tr>
+          @for (s of pending().slice(0, 8); track s.id) {
+            <tr>
+              <td>
+                {{ s.id }}<small>{{ s.product }}</small>
+              </td>
+              <td>{{ s.clientName || s.route }}</td>
+              <td>
+                <span class="badge badge-info">{{ labels[s.status] | translate }}</span>
+              </td>
+              <td><a [routerLink]="['/shipments', s.id]">{{ 'OPERATIONS.CONTINUE' | translate }}</a></td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4" class="flow-empty">{{ 'OPERATIONS.NO_PENDING_SHIPMENTS' | translate }}</td>
+            </tr>
           }
         </tbody>
       </table>
     </div>
-  </div>
+  </section>
 </div>
-<link
-  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
-  rel="stylesheet" />

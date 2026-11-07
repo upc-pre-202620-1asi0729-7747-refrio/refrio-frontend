@@ -1,87 +1,125 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
-import { RouterLink, ActivatedRoute } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../../../environments/environment';
-
-interface Shipment {
-  id: string;
-  product: string;
-  route: string;
-  temperature: string;
-  eta: string;
-  status: string;
-  driver: string;
-  vehicle: string;
-  batchNumber?: string;
-}
+import { TranslatePipe } from '../../../../shared/pipes/translate.pipe';
+import { Component, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { DatePipe } from '@angular/common';
+import { OperationsStore } from '../../../../operations/application/operations.store';
+import { OperationalMonitoringService } from '../../../../events/application/operational-monitoring.service';
+import {
+  Allocation,
+  statusLabels,
+  nextStatus,
+} from '../../../../operations/domain/operations.rules';
 
 @Component({
   selector: 'app-shipment-detail',
   standalone: true,
-  imports: [RouterLink],
+  imports: [TranslatePipe, RouterLink, FormsModule, DatePipe],
   templateUrl: './shipment-detail.html',
-  styleUrl: './shipment-detail.css',
 })
-export class ShipmentDetailComponent implements OnInit {
+export class ShipmentDetailComponent {
+  ops = inject(OperationsStore);
+  private monitoring = inject(OperationalMonitoringService);
   private route = inject(ActivatedRoute);
-  private http = inject(HttpClient);
-  private basePath = environment.serverBasePath;
-
-  shipment = signal<Shipment | null>(null);
-
-  ngOnInit() {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.http.get<Shipment[]>(`${this.basePath}/shipments`).subscribe({
-        next: (data) => {
-          const found = data.find(s => s.id === id);
-          if (found) {
-            this.shipment.set(found);
-          } else {
-             this.shipment.set({
-               id,
-               product: 'Producto Desconocido',
-               route: 'Ruta Desconocida',
-               temperature: '0°C',
-               eta: '00:00 AM',
-               status: 'In Transit',
-               driver: 'Sin asignar',
-               vehicle: 'Sin vehículo'
-             });
-          }
-        }
-      });
+  id = this.route.snapshot.paramMap.get('id') || '';
+  shipment = computed(() => this.ops.shipments().find((s) => s.id === this.id));
+  labels: Record<string, string> = statusLabels;
+  nextStatus = nextStatus;
+  steps = computed(() => {
+    const status = this.shipment()?.status;
+    return [
+      'Preparing',
+      status === 'Delayed' ? 'Delayed' : 'In Transit',
+      'Awaiting Receipt',
+      status === 'Rejected' ? 'Rejected' : 'Delivered',
+    ];
+  });
+  incidents = computed(() =>
+    this.monitoring.alerts().filter(
+      (alert) =>
+        alert.aggregateId === this.shipment()?.id &&
+        !!alert.aggregateId &&
+        (alert.audience === 'ALL' || alert.audience === this.ops.role()),
+    ),
+  );
+  error = signal('');
+  success = signal('');
+  receiptOpen = signal(false);
+  receiptStep = signal(0);
+  decision = 'accepted';
+  notes = '';
+  quantities: Allocation[] = [];
+  batch(id: string) {
+    return this.ops.database.data().batches.find((b) => b.id === id);
+  }
+  product(id: string) {
+    return this.ops.database.data().inventory.find((p) => p.id === id)?.name || id;
+  }
+  eventAt(status: string) {
+    return this.shipment()?.timeline?.find((t) => t.status === status)?.at;
+  }
+  get history() {
+    return this.ops.database
+      .data()
+      .events.filter((e) => e.aggregateId === this.id)
+      .slice(0, 12);
+  }
+  async run(action: () => void | Promise<void>) {
+    this.error.set('');
+    this.success.set('');
+    try {
+      await action();
+    } catch (e) {
+      this.error.set((e as Error).message);
     }
   }
-
-  get origin(): string {
-    return this.shipment()?.route?.split(' → ')?.[0] || 'Almacén Origen';
+  advance() {
+    this.run(async () => {
+      await this.ops.advanceShipment(this.id);
+      this.success.set('Estado del envío actualizado.');
+    });
   }
-
-  get destination(): string {
-    return this.shipment()?.route?.split(' → ')?.[1] || 'Punto Destino';
+  startReceipt() {
+    this.decision = 'accepted';
+    this.notes = '';
+    this.quantities = structuredClone(this.shipment()?.allocations || []);
+    this.receiptStep.set(0);
+    this.receiptOpen.set(true);
+    this.error.set('');
   }
-
-  get licensePlate(): string {
-    const vehicle = this.shipment()?.vehicle;
-    if (vehicle && vehicle.startsWith('REF-')) {
-      const num = vehicle.split('-')[1];
-      return `ABC-${num}`;
-    }
-    // Para los nuevos que dicen Pending
-    if (this.shipment()?.id) {
-      const idNum = this.shipment()?.id?.split('-')[1] || '000';
-      return `XYZ-${idNum.substring(0, 3)}`;
-    }
-    return 'ABC-123';
+  chooseDecision() {
+    this.quantities = (this.shipment()?.allocations || []).map((a) => ({
+      ...a,
+      quantity: this.decision === 'rejected' ? 0 : a.quantity,
+    }));
+    this.receiptStep.set(0);
   }
-
-  get storeManager(): string {
-    const dest = this.destination;
-    if (dest.includes('Surco')) return `Sr. Manuel Paredes`;
-    if (dest.includes('Miraflores')) return `Sra. Carmen Rojas`;
-    if (dest.includes('San Isidro')) return `Sr. Luis Castro`;
-    if (dest.includes('Chorrillos')) return `Sra. Rosa Mendieta`;
-    return `Encargado Local`;
+  review() {
+    this.run(() => {
+      if (this.decision !== 'accepted' && !this.notes.trim())
+        throw new Error('Indica el motivo antes de continuar.');
+      if (
+        this.quantities.some(
+          (q, i) =>
+            !Number.isSafeInteger(Number(q.quantity)) ||
+            Number(q.quantity) < 0 ||
+            Number(q.quantity) > this.shipment()!.allocations![i].quantity,
+        )
+      )
+        throw new Error('Revisa las cantidades recibidas por lote.');
+      this.receiptStep.set(1);
+    });
+  }
+  confirmReceipt() {
+    this.run(async () => {
+      await this.ops.receiveShipment(
+        this.id,
+        this.decision,
+        this.quantities.map((a) => ({ ...a, quantity: Number(a.quantity) })),
+        this.notes,
+      );
+      this.receiptOpen.set(false);
+      this.success.set('Recepción guardada. El inventario y el historial ya están actualizados.');
+    });
   }
 }

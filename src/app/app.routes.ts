@@ -1,6 +1,8 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, Routes } from '@angular/router';
 import { LayoutComponent } from './shared/presentation/components/layout/layout';
 import { IamGuard } from './iam/infrastructure/iam.guard';
+import { IamStore } from './iam/application/iam.store';
 
 export const routes: Routes = [
   // Public routes — IAM
@@ -80,6 +82,17 @@ export const routes: Routes = [
         path: 'alerts/:id',
         loadComponent: () =>
           import('./alerting/presentation/views/alert-detail/alert-detail').then(m => m.AlertDetailComponent),
+      },
+      {
+        path: 'events',
+        canActivate: [
+          () => {
+            const role = inject(IamStore).currentUser()?.role;
+            return role === 'Supervisor' || inject(Router).createUrlTree(['/bodeguero-dashboard']);
+          },
+        ],
+        loadComponent: () =>
+          import('./events/presentation/views/events-view/events-view').then(m => m.EventsViewComponent),
       },
       {
         path: 'settings',

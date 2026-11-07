@@ -1,43 +1,82 @@
-<div class="page-view animate-fade-in">
-  <div class="page-header">
-    <div>
-      <h1 class="page-title">{{ 'ANALYTICS.TITLE' | translate }}</h1>
-      <p class="page-subtitle">{{ 'ANALYTICS.SUBTITLE' | translate }}</p>
+<div class="flow-page">
+  <header>
+    <h1>{{ 'OPERATIONS.OPERATIONAL_RESULTS' | translate }}</h1>
+    <p>{{ 'OPERATIONS.METRICS_CALCULATED_FROM_RECORDED_TRANSACTIONS' | translate }}</p>
+  </header>
+  <div class="flow-metrics">
+    <div class="flow-card">
+      <span>{{ 'OPERATIONS.UNITS_RESERVED_FOR_SHIPMENT' | translate }}</span><strong>{{ sent() }}</strong>
+    </div>
+    <div class="flow-card">
+      <span>{{ 'OPERATIONS.UNITS_RECEIVED_BY_CUSTOMERS' | translate }}</span><strong>{{ received() }}</strong>
+    </div>
+    <div class="flow-card">
+      <span>{{ 'OPERATIONS.UNITS_RECORDED_AS_WASTE' | translate }}</span><strong>{{ losses() }}</strong>
     </div>
   </div>
-
-  <!-- KPI Grid -->
-  <div class="kpi-grid">
-    @for (metric of analyticsStore.metrics(); track metric.id) {
-    <div class="kpi-card card">
-      <div class="kpi-header">
-        <span class="kpi-name">{{ metric.metricName }}</span>
-        <span class="kpi-trend" [class]="getTrendClass(metric.trend)">
-          <span class="material-symbols-outlined">{{ getTrendIcon(metric.trend) }}</span>
-          @if (metric.trendPercentage !== 0) {
-          {{ metric.trendPercentage > 0 ? '+' : '' }}{{ metric.trendPercentage }}%
-          }
-        </span>
+  <div class="flow-grid">
+    <section class="flow-card">
+      <h2>{{ 'OPERATIONS.UNITS_BY_PRODUCT' | translate }}</h2>
+      <p class="flow-hint">{{ 'OPERATIONS.PRODUCT_VOLUMES_HINT' | translate }}</p>
+      <div class="chart-legend">
+        <span><i class="chart-swatch sent-swatch" aria-hidden="true"></i>{{ 'OPERATIONS.SENT_UNITS' | translate }}</span>
+        <span><i class="chart-swatch received-swatch" aria-hidden="true"></i>{{ 'OPERATIONS.UNITS_RECEIVED_BY_CUSTOMERS' | translate }}</span>
       </div>
-      <div class="kpi-value">
-        {{ metric.value | number }}
-        <span class="kpi-unit">{{ metric.unit }}</span>
+      @for (row of productVolumes(); track row.id) {
+        <div class="product-series">
+          <strong>{{ row.name }}</strong>
+          <div class="bar-values">
+            <span class="sr-only">{{ 'OPERATIONS.SENT_UNITS' | translate }}</span>
+            <div class="series-track" aria-hidden="true"><div class="sent-swatch" [style.width.%]="100 * row.sent / maxVolume()"></div></div>
+            <span>{{ row.sent }}</span>
+          </div>
+          <div class="bar-values">
+            <span class="sr-only">{{ 'OPERATIONS.UNITS_RECEIVED_BY_CUSTOMERS' | translate }}</span>
+            <div class="series-track" aria-hidden="true"><div class="received-swatch" [style.width.%]="100 * row.received / maxVolume()"></div></div>
+            <span>{{ row.received }}</span>
+          </div>
+        </div>
+      } @empty {
+        <p class="flow-empty">{{ 'OPERATIONS.NO_DISPATCHED_UNITS' | translate }}</p>
+      }
+    </section>
+    <section class="flow-card">
+      <h2>{{ 'OPERATIONS.SHIPMENTS_BY_STATUS' | translate }}</h2>
+      <p class="flow-hint">{{ 'OPERATIONS.SHIPMENT_STATUS_HINT' | translate }}</p>
+      @if (shipmentCount()) {
+        <div class="status-chart">
+          <div class="status-ring" [style.background]="statusChart()" aria-hidden="true">
+            <div class="ring-center"><strong>{{ shipmentCount() }}</strong><span>{{ 'OPERATIONS.SHIPMENTS' | translate }}</span></div>
+          </div>
+          <ul class="status-legend">
+            @for (entry of shipmentStatuses(); track entry.status) {
+              <li>
+                <i class="chart-swatch" [style.background-color]="entry.color" aria-hidden="true"></i>
+                <span>{{ entry.label | translate }}</span>
+                <strong>{{ entry.count }}</strong>
+              </li>
+            }
+          </ul>
+        </div>
+      } @else {
+        <p class="flow-empty">{{ 'OPERATIONS.NO_RECORDED_SHIPMENTS' | translate }}</p>
+      }
+    </section>
+  </div>
+  <section class="flow-card">
+    <h2>{{ 'OPERATIONS.REASONS_FOR_WASTE' | translate }}</h2>
+    @for (c of causes(); track c.cause) {
+      <div class="flow-bar-label">
+        <span>{{ c.cause }}</span
+        ><strong>{{ c.units }} u.</strong>
       </div>
-      <div class="kpi-period">{{ metric.period }}</div>
-    </div>
+      <div class="flow-bar"><div [style.width.%]="(c.units / (losses() || 1)) * 100"></div></div>
+    } @empty {
+      <p class="flow-empty">{{ 'OPERATIONS.NO_WASTE_RECORDED_YET' | translate }}</p>
     }
-  </div>
-
-  <!-- Placeholder for Charts -->
-  <div class="card chart-placeholder">
-    <h2 class="card-title">{{ 'ANALYTICS.CHART_TITLE' | translate }}</h2>
-    <p class="placeholder-text">
-
-      {{ 'ANALYTICS.CHART_DESC' | translate }}
-    </p>
-  </div>
+    <a routerLink="/inventory">{{ 'OPERATIONS.REVIEW_INVENTORY' | translate }}</a>
+  </section>
+  <p class="flow-hint">
+    {{ 'OPERATIONS.HISTORICAL_ANALYTICS_HINT' | translate }}
+  </p>
 </div>
-
-<link
-  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
-  rel="stylesheet" />

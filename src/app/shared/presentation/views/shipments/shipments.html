@@ -1,184 +1,225 @@
-<div class="page-view animate-fade-in">
-  <div class="page-header">
+<div class="flow-page">
+  <header class="flow-header">
     <div>
-      <h1 class="page-title">{{ 'SHIPMENTS.TITLE' | translate }}</h1>
-      <p class="page-subtitle">{{ 'SHIPMENTS.SUBTITLE' | translate }}</p>
+      <h1>{{ 'OPERATIONS.SHIPMENTS' | translate }}</h1>
+      <p>{{ 'OPERATIONS.TRACK_EACH_BATCH_FROM_ORDER_TO_RECEIPT' | translate }}</p>
     </div>
-    <div class="header-actions">
-      <div style="position: relative;">
-        <button class="btn-secondary" (click)="toggleRoutesDropdown()">
-          {{ selectedRoute() || ('SHIPMENTS.ALL_ROUTES' | translate) }}
-          <span class="material-symbols-outlined" style="font-size:16px">keyboard_arrow_down</span>
-        </button>
-        @if (showRoutesDropdown()) {
-        <div style="position: absolute; top: 100%; left: 0; margin-top: 8px; width: max-content; background: white; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid var(--color-gray-200); z-index: 1000; overflow: hidden; display: flex; flex-direction: column;">
-          <div (click)="selectRoute(null)" style="padding: 12px 16px; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='var(--color-gray-50)'" onmouseout="this.style.background='white'">
-            {{ 'SHIPMENTS.ALL_ROUTES' | translate }}
-          </div>
-          @for (route of availableRoutes; track route) {
-            <div (click)="selectRoute(route)" style="padding: 12px 16px; border-top: 1px solid var(--color-gray-100); cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='var(--color-gray-50)'" onmouseout="this.style.background='white'">
-              {{ route }}
-            </div>
+    <button class="btn-primary" (click)="start()" [disabled]="ops.database.loading()">
+      {{ 'OPERATIONS.CREATE_SHIPMENT' | translate }}
+    </button>
+  </header>
+  <div class="flow-metrics">
+    <div class="flow-card">
+      <span>{{ 'OPERATIONS.PREPARING' | translate }}</span><strong>{{ preparingCount }}</strong>
+    </div>
+  </div>
+  <section class="flow-card">
+    <div class="flow-header">
+      <h2>{{ 'OPERATIONS.ALL_SHIPMENTS' | translate }}</h2>
+      <label
+        >{{ 'OPERATIONS.STATUS' | translate }}
+        <select
+          [ngModel]="filter()"
+          (ngModelChange)="filter.set($event)"
+          [attr.aria-label]="'OPERATIONS.FILTER_SHIPMENTS' | translate"
+        >
+          <option value="ALL">{{ 'OPERATIONS.ALL' | translate }}</option>
+          @for (
+            entry of [
+              'Preparing',
+              'In Transit',
+              'Awaiting Receipt',
+              'Delivered',
+              'Rejected',
+              'Delayed',
+            ];
+            track entry
+          ) {
+            <option [value]="entry">{{ labels[entry] | translate }}</option>
           }
-        </div>
-        }
-      </div>
-      <button class="btn-primary" id="btn-new-shipment" (click)="openAddShipment()">
-        <span class="material-symbols-outlined">add</span>
-        {{ 'SHIPMENTS.CREATE_SHIPMENT' | translate }}
-      </button>
+        </select></label
+      >
     </div>
-  </div>
-
-  <div class="kpi-grid">
-    <div class="kpi-card card">
-      <div class="kpi-title">{{ 'SHIPMENTS.ACTIVE' | translate }}</div>
-      <div class="kpi-value">128</div>
-      <div class="kpi-subtext text-muted">{{ 'SHIPMENTS.ACTIVE_SUB' | translate }}</div>
-    </div>
-    <div class="kpi-card card">
-      <div class="kpi-title">{{ 'SHIPMENTS.DELIVERED_TODAY' | translate }}</div>
-      <div class="kpi-value">47</div>
-      <div class="kpi-subtext text-success">{{ 'SHIPMENTS.DELIVERED_SUB' | translate }}</div>
-    </div>
-    <div class="kpi-card card">
-      <div class="kpi-title">{{ 'SHIPMENTS.DELAYED' | translate }}</div>
-      <div class="kpi-value">3</div>
-      <div class="kpi-subtext text-danger">{{ 'SHIPMENTS.DELAYED_SUB' | translate }}</div>
-    </div>
-    <div class="kpi-card card">
-      <div class="kpi-title">{{ 'SHIPMENTS.AVG_TEMP' | translate }}</div>
-      <div class="kpi-value">4.2°C</div>
-      <div class="kpi-subtext text-success">{{ 'SHIPMENTS.AVG_TEMP_SUB' | translate }}</div>
-    </div>
-  </div>
-
-  <div class="card map-card">
-    <div class="card-header-flex">
-      <div>
-        <h2 class="card-title">{{ 'SHIPMENTS.ACTIVE_ROUTES' | translate }}</h2>
-        <p class="text-muted" style="font-size:12px; margin-top:2px;">{{ 'SHIPMENTS.LIVE_TRACKING' | translate }}</p>
-      </div>
-
-    </div>
-    <div class="map-placeholder">
-      <div class="map-dot dot-transit" style="top: 60%; left: 40%">
-        <span class="material-symbols-outlined">location_on</span>
-        <label>{{ 'DASHBOARD.IN_TRANSIT' | translate }}</label>
-      </div>
-      <div class="map-dot dot-delivered" style="top: 40%; left: 30%">
-        <span class="material-symbols-outlined">location_on</span>
-        <label>Lima Central</label>
-      </div>
-      <div class="map-dot dot-delayed" style="top: 35%; left: 55%">
-        <span class="material-symbols-outlined">location_on</span>
-        <label>{{ 'DASHBOARD.DELAYED' | translate }}</label>
-      </div>
-      <div class="map-legend">
-        <span><span class="legend-color bg-transit"></span> {{ 'DASHBOARD.IN_TRANSIT' | translate }}</span>
-        <span><span class="legend-color bg-delivered"></span> {{ 'DASHBOARD.DELIVERED' | translate }}</span>
-        <span><span class="legend-color bg-delayed"></span> {{ 'DASHBOARD.DELAYED' | translate }}</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-header-flex" style="padding: 16px 20px; border-bottom: 1px solid var(--color-gray-100);">
-      <h2 class="card-title">{{ 'SHIPMENTS.ALL_SHIPMENTS' | translate }}</h2>
-    </div>
-    <div class="table-wrapper">
-      <table class="data-table">
+    <div class="flow-table-wrap">
+      <table class="flow-table">
         <thead>
           <tr>
-            <th>{{ 'DASHBOARD.SHIPMENT_ID' | translate }}</th>
-            <th>{{ 'DASHBOARD.PRODUCT' | translate }}</th>
-            <th>{{ 'DASHBOARD.ROUTE' | translate }}</th>
-            <th>{{ 'DASHBOARD.TEMPERATURE' | translate }}</th>
-            <th>{{ 'SHIPMENTS.DRIVER' | translate }}</th>
-            <th>{{ 'SHIPMENTS.VEHICLE' | translate }}</th>
-            <th>{{ 'DASHBOARD.ETA' | translate }}</th>
-            <th>{{ 'DASHBOARD.STATUS' | translate }}</th>
-            <th>{{ 'DASHBOARD.ACTION' | translate }}</th>
+            <th>{{ 'OPERATIONS.SHIPMENT_CUSTOMER' | translate }}</th>
+            <th>{{ 'OPERATIONS.PRODUCTS' | translate }}</th>
+            <th>{{ 'OPERATIONS.ROUTE' | translate }}</th>
+            <th>{{ 'OPERATIONS.STATUS' | translate }}</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
-          @for (s of filteredShipments(); track s.id) {
-          <tr>
-            <td class="shipment-id">{{ s.id }}</td>
-            <td class="fw-600">{{ s.product }}</td>
-            <td class="text-muted">{{ s.route }}</td>
-            <td>{{ s.temperature }}</td>
-            <td>{{ s.driver }}</td>
-            <td class="mono">{{ s.vehicle }}</td>
-            <td>{{ s.eta }}</td>
-            <td>
-              <span class="badge" [class]="getStatusClass(s.status)">
-                @if (s.status === 'In Transit') { {{ 'DASHBOARD.IN_TRANSIT' | translate }} }
-                @if (s.status === 'Delivered') { {{ 'DASHBOARD.DELIVERED' | translate }} }
-                @if (s.status === 'Delayed') { {{ 'DASHBOARD.DELAYED' | translate }} }
-              </span>
-            </td>
-            <td>
-              <a [routerLink]="['/shipments', s.id]" class="action-link" [id]="'view-' + s.id">{{ 'DASHBOARD.VIEW' |
-                translate }}</a>
-            </td>
-          </tr>
+          @for (s of filtered; track s.id) {
+            <tr>
+              <td>
+                <strong>{{ s.id }}</strong
+                ><small>{{ s.clientName || ('OPERATIONS.HISTORICAL_RECORD' | translate) }}</small>
+              </td>
+              <td>{{ s.product }}</td>
+              <td>{{ s.route }}</td>
+              <td>
+                <span
+                  class="badge"
+                  [class.badge-success]="s.status === 'Delivered'"
+                  [class.badge-danger]="s.status === 'Rejected'"
+                  [class.badge-info]="s.status !== 'Delivered' && s.status !== 'Rejected'"
+                  >{{ labels[s.status] | translate }}</span
+                >
+              </td>
+              <td><a [routerLink]="['/shipments', s.id]">{{ 'OPERATIONS.VIEW_TRACKING' | translate }}</a></td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="flow-empty">{{ 'OPERATIONS.NO_SHIPMENTS_MATCH_THIS_STATUS' | translate }}</td>
+            </tr>
           }
         </tbody>
       </table>
     </div>
-  </div>
+  </section>
 </div>
-
-<!-- Create Shipment Modal -->
-@if (isAddShipmentOpen()) {
-<div class="modal-overlay" (click)="closeAddShipment()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h3 class="modal-title">{{ 'SHIPMENTS.MODAL_TITLE' | translate }}</h3>
-      <button class="btn-close" (click)="closeAddShipment()">
-        <span class="material-symbols-outlined">close</span>
-      </button>
-    </div>
-    <div class="modal-body">
-      <div class="form-row">
-        <div class="form-group">
-          <label>{{ 'SHIPMENTS.PRODUCT_BATCH' | translate }}</label>
-          <input type="text" class="form-control" [(ngModel)]="newShipment.product" placeholder="">
+@if (open()) {
+  <div class="modal-overlay" (click)="open.set(false)" (keydown.escape)="open.set(false)">
+    <section
+      class="flow-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="shipment-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="flow-header">
+        <div>
+          <h2 id="shipment-title">{{ steps[step()] | translate }}</h2>
         </div>
-        <div class="form-group">
-          <label>{{ 'SHIPMENTS.BATCH_NUMBER' | translate }}</label>
-          <input type="text" class="form-control" [(ngModel)]="newShipment.batchNumber" placeholder="">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>{{ 'SHIPMENTS.ORIGIN' | translate }}</label>
-          <input type="text" class="form-control" [(ngModel)]="newShipment.origin" placeholder="">
-        </div>
-        <div class="form-group">
-          <label>{{ 'SHIPMENTS.DESTINATION' | translate }}</label>
-          <input type="text" class="form-control" [(ngModel)]="newShipment.destination" placeholder="">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>{{ 'SHIPMENTS.REQ_TEMP' | translate }}</label>
-          <input type="text" class="form-control" [(ngModel)]="newShipment.temperature" placeholder="e.g., 3°C">
-        </div>
-        <div class="form-group">
-          <label>{{ 'SHIPMENTS.EST_DELIVERY' | translate }}</label>
-          <input type="text" class="form-control" [(ngModel)]="newShipment.eta" placeholder="">
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-cancel" (click)="closeAddShipment()">{{ 'SHIPMENTS.CANCEL' | translate }}</button>
-      <button class="btn-submit" (click)="addShipment()">{{ 'SHIPMENTS.CREATE_SHIPMENT' | translate }}</button>
-    </div>
+        <button class="btn-secondary" [attr.aria-label]="'OPERATIONS.CLOSE_WIZARD' | translate" (click)="open.set(false)">
+          {{ 'OPERATIONS.CLOSE' | translate }}
+        </button>
+      </header>
+      <ol class="flow-steps">
+        @for (label of steps; track label; let i = $index) {
+          <li
+            [class.current]="step() === i"
+            [class.done]="step() > i"
+            [attr.aria-current]="step() === i ? 'step' : null"
+          >
+            <span>{{ i + 1 }}</span
+            >{{ label | translate }}
+          </li>
+        }
+      </ol>
+      @if (error()) {
+        <p class="flow-error" role="alert">{{ error() | translate }}</p>
+      }
+      @switch (step()) {
+        @case (0) {
+          <label class="flow-field"
+            >{{ 'OPERATIONS.RECEIVING_CUSTOMER' | translate }}<select [(ngModel)]="clientId" (ngModelChange)="chooseClient()">
+              <option value="">{{ 'OPERATIONS.SELECT_A_CUSTOMER' | translate }}</option>
+              @for (c of linkedClients; track c.id) {
+                <option [value]="c.id">{{ c.name }}</option>
+              }
+            </select></label
+          >
+          <p class="flow-hint">
+            {{ 'CLIENTS.SHIPMENT_ACCOUNT_HINT' | translate }}
+            <a routerLink="/suppliers" (click)="open.set(false)">{{ 'CLIENTS.TITLE' | translate }} →</a>
+          </p>
+          @for (line of lines; track $index; let i = $index) {
+            <div class="flow-line">
+              <label class="flow-field"
+                >{{ 'OPERATIONS.PRODUCT' | translate }}<select [(ngModel)]="line.productId">
+                  <option value="">{{ 'OPERATIONS.SELECT_A_PRODUCT' | translate }}</option>
+                  @for (p of productOptions; track p.id) {
+                    <option [value]="p.id">{{ p.name }}</option>
+                  }
+                </select></label
+              ><label class="flow-field"
+                >{{ 'OPERATIONS.UNITS' | translate }}<input type="number" min="1" step="1" [(ngModel)]="line.quantity" /></label
+              ><button
+                class="btn-secondary"
+                [disabled]="lines.length === 1"
+                (click)="lines.splice(i, 1)"
+                [attr.aria-label]="'OPERATIONS.REMOVE_PRODUCT' | translate"
+              >
+                {{ 'OPERATIONS.REMOVE' | translate }}
+              </button>
+            </div>
+          }
+          <button class="btn-secondary" (click)="lines.push({ productId: '', quantity: 1 })">
+            {{ 'OPERATIONS.ADD_PRODUCT' | translate }}
+          </button>
+        }
+        @case (1) {
+          <p>
+            {{ 'OPERATIONS.ELIGIBLE_BATCHES_WITH_THE_NEAREST_EXPIRATION_ARE_PICKED_FIRST' | translate }}
+          </p>
+          @for (a of plan; track a.batchId; let i = $index) {
+            <div class="flow-picking">
+              <div>
+                <strong>{{ i + 1 }}. {{ a.batchId }} · {{ product(a.productId) }}</strong
+                ><small
+                  >{{ 'OPERATIONS.0_UNITS_EXPIRES_1_2' | translate : [(a.quantity), (batch(a.batchId)?.expirationDate), (batch(a.batchId)?.location)] }}</small
+                >
+              </div>
+              <label class="flow-field"
+                >{{ 'OPERATIONS.BATCH_CODE' | translate }}<input
+                  [(ngModel)]="codes[i]"
+                  autocomplete="off"
+                  [attr.aria-label]="('OPERATIONS.CONFIRM_BATCH' | translate) + (i + 1)"
+                  [placeholder]="'OPERATIONS.ENTER_THE_CODE' | translate"
+              /></label>
+            </div>
+          }
+          <p class="flow-hint">
+            {{ 'OPERATIONS.EXPIRED_BATCHES_BATCHES_EXPIRING_TODAY_AND_BATCHES_ON_HOLD' | translate }}
+          </p>
+        }
+        @case (2) {
+          <div class="flow-grid">
+            <label class="flow-field">{{ 'OPERATIONS.ORIGIN' | translate }}<input [(ngModel)]="origin" /></label
+            ><label class="flow-field">{{ 'OPERATIONS.DESTINATION' | translate }}<input [(ngModel)]="destination" /></label
+            ><label class="flow-field">{{ 'OPERATIONS.DRIVER' | translate }}<input [(ngModel)]="driver" /></label
+            ><label class="flow-field">{{ 'OPERATIONS.VEHICLE_PLATE' | translate }}<input [(ngModel)]="vehicle" /></label
+            ><label class="flow-field"
+              >{{ 'OPERATIONS.ESTIMATED_DELIVERY' | translate }}<input type="datetime-local" [(ngModel)]="eta"
+            /></label>
+          </div>
+        }
+        @case (3) {
+          <div class="flow-notice">
+            {{ 'OPERATIONS.CONFIRM_TO_RESERVE_0_UNITS_FROM_AVAILABLE_STOCK_THE' | translate : [(total)] }}
+          </div>
+          <dl class="flow-summary">
+            <dt>{{ 'OPERATIONS.CUSTOMER' | translate }}</dt>
+            <dd>{{ clientName }}</dd>
+            <dt>{{ 'OPERATIONS.ROUTE' | translate }}</dt>
+            <dd>{{ origin }} → {{ destination }}</dd>
+            <dt>{{ 'OPERATIONS.TRANSPORT' | translate }}</dt>
+            <dd>{{ driver }} · {{ vehicle }}</dd>
+            <dt>{{ 'OPERATIONS.ESTIMATED_DELIVERY' | translate }}</dt>
+            <dd>{{ eta | date: 'dd/MM/yyyy HH:mm' }}</dd>
+          </dl>
+          @for (a of plan; track a.batchId) {
+            <p>
+              {{ a.batchId }} · {{ product(a.productId) }} ·
+              <strong>{{ 'OPERATIONS.0_UNITS' | translate : [(a.quantity)] }}</strong>
+            </p>
+          }
+        }
+      }
+      <footer class="flow-footer">
+        <button class="btn-secondary" (click)="step() ? step.set(step() - 1) : open.set(false)">
+          {{ step() ? ('OPERATIONS.BACK' | translate) : ('OPERATIONS.CANCEL' | translate) }}
+        </button>
+        @if (step() < 3) {
+          <button class="btn-primary" (click)="next()">{{ 'OPERATIONS.CONTINUE' | translate }}</button>
+        } @else {
+          <button class="btn-primary" (click)="confirm()">{{ 'OPERATIONS.CONFIRM_AND_RESERVE_STOCK' | translate }}</button>
+        }
+      </footer>
+    </section>
   </div>
-</div>
 }
-<link
-  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
-  rel="stylesheet" />

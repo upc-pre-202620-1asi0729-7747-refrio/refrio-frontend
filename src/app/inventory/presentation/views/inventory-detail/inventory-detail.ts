@@ -1,89 +1,138 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { TranslatePipe } from '../../../../shared/pipes/translate.pipe';
+import { Component, inject, signal, computed } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, ActivatedRoute } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../../../environments/environment';
+import { OperationsStore } from '../../../../operations/application/operations.store';
 import { IamStore } from '../../../../iam/application/iam.store';
+import { eligible, todayKey } from '../../../../operations/domain/operations.rules';
 
 @Component({
   selector: 'app-inventory-detail',
   standalone: true,
-  imports: [RouterLink, FormsModule],
+  imports: [TranslatePipe, RouterLink, FormsModule],
   templateUrl: './inventory-detail.html',
-  styleUrl: './inventory-detail.css'
+  styles: [`
+    .temperature-reading {
+      display: grid;
+      gap: 7px;
+      margin: 14px 0;
+    }
+    .temperature-reading label,
+    .temperature-reading input {
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .temperature-reading input {
+      width: 203px;
+    }
+  `],
 })
-export class InventoryDetailComponent implements OnInit {
-  private route = inject(ActivatedRoute);
-  private http = inject(HttpClient);
-  private iamStore = inject(IamStore);
-  private basePath = environment.serverBasePath;
-
-  product = signal<any>(null);
-  batches = signal<any[]>([]);
-  
-  isAddBatchOpen = signal(false);
-  newBatch = { product: '', batchNumber: '', quantity: '', receptionDate: '', supplier: '', expirationDate: '', notes: '' };
-
-  ngOnInit() {
-    this.route.paramMap.subscribe(params => {
-      const id = params.get('id');
-      if (id) {
-        this.fetchProduct(id);
-        this.fetchBatches(id);
-      }
-    });
-  }
-
-  getEndpoint(): string {
-    const role = this.iamStore.currentUser()?.role;
-    return role === 'Minorista' ? '/bodeguero-inventory' : '/inventory';
-  }
-
-  fetchProduct(id: string) {
-    this.http.get<any>(`${this.basePath}${this.getEndpoint()}/${id}`).subscribe({
-      next: (data) => this.product.set(data),
-      error: (err) => console.error('Failed to load product details', err)
-    });
-  }
-
-  fetchBatches(productId: string) {
-    this.http.get<any[]>(`${this.basePath}/batches?productId=${productId}`).subscribe({
-      next: (data) => this.batches.set(data),
-      error: (err) => console.error('Failed to load batches', err)
-    });
-  }
-  
-  openAddBatch() {
-    this.newBatch = { product: this.product()?.name || '', batchNumber: '', quantity: '', receptionDate: '', supplier: '', expirationDate: '', notes: '' };
-    this.isAddBatchOpen.set(true);
-  }
-
-  closeAddBatch() {
-    this.isAddBatchOpen.set(false);
-  }
-
-  addBatch() {
-    if (!this.newBatch.batchNumber) return;
-    
-    const newRecord = {
-      id: this.newBatch.batchNumber,
-      productId: this.product()?.id,
-      quantity: this.newBatch.quantity,
-      weight: 'N/A',
-      receptionDate: this.newBatch.receptionDate,
-      expirationDate: this.newBatch.expirationDate,
-      supplier: this.newBatch.supplier,
-      location: 'N/A',
-      status: 'Fresh',
-      notes: this.newBatch.notes
+export class InventoryDetailComponent {
+  ops = inject(OperationsStore);
+  private iam = inject(IamStore);
+  isSupplier = computed(() => this.ops.role() === 'Supervisor');
+  supplierName = computed(() => {
+    const user = this.iam.currentUser();
+    return user?.fullName.trim() || user?.username || '';
+  });
+  route = inject(ActivatedRoute);
+  id = this.route.snapshot.paramMap.get('id') || '';
+  product = computed(() => this.ops.products().find((p) => p.id === this.id));
+  batches = computed(() => this.ops.batches().filter((b) => b.productId === this.id));
+  open = signal(this.route.snapshot.queryParamMap.has('intake'));
+  step = signal(0);
+  error = signal('');
+  success = signal('');
+  temperature: number | null = null;
+  form = {
+    id: '',
+    quantity: 1,
+    receptionDate: todayKey(),
+    expirationDate: '',
+    supplier: '',
+    location: '',
+    notes: '',
+  };
+  steps = computed(() => [
+    this.isSupplier() ? 'OPERATIONS.BATCH_DETAILS' : 'Recepción',
+    'Ubicación y control',
+    'Confirmación',
+  ]);
+  eligible = eligible;
+  start() {
+    this.form = {
+      id: 'LOT-' + crypto.randomUUID().slice(0, 8).toUpperCase(),
+      quantity: 1,
+      receptionDate: todayKey(),
+      expirationDate: '',
+      supplier: '',
+      location: this.product()?.warehouse || '',
+      notes: '',
     };
-    
-    this.http.post<any>(`${this.basePath}/batches`, newRecord).subscribe({
-      next: (saved) => {
-        this.batches.update(list => [...list, saved]);
-        this.closeAddBatch();
-      },
-      error: (err) => console.error('Failed to save batch', err)
-    });
+    this.step.set(0);
+    this.error.set('');
+    this.open.set(true);
+  }
+  next() {
+    this.error.set('');
+    if (
+      this.step() === 0 &&
+      (!this.form.id.trim() ||
+        !Number.isSafeInteger(Number(this.form.quantity)) ||
+        Number(this.form.quantity) <= 0 ||
+        !this.form.receptionDate ||
+        !this.form.expirationDate ||
+        this.form.expirationDate <= todayKey() ||
+        this.form.receptionDate > todayKey())
+    ) {
+      this.error.set(
+        this.isSupplier()
+          ? 'OPERATIONS.VALIDATE_BATCH_REGISTRATION'
+          : 'Completa un código, cantidad positiva, recepción no futura y vencimiento posterior a hoy.',
+      );
+      return;
+    }
+    if (this.step() === 1 && !this.form.location.trim()) {
+      this.error.set('OPERATIONS.ENTER_BATCH_LOCATION');
+      return;
+    }
+    if (this.step() === 1 && !this.isSupplier() && !this.form.supplier.trim()) {
+      this.error.set('Completa proveedor y ubicación.');
+      return;
+    }
+    this.step.update((s) => s + 1);
+  }
+  async confirm() {
+    try {
+      await this.ops.registerBatch({
+        ...this.form,
+        supplier: this.isSupplier() ? this.supplierName() : this.form.supplier,
+        productId: this.id,
+        quantity: Number(this.form.quantity),
+      });
+      this.open.set(false);
+      this.success.set(
+        this.isSupplier()
+          ? 'OPERATIONS.BATCH_REGISTERED'
+          : 'Lote recibido. Stock y alertas actualizados.',
+      );
+    } catch (e) {
+      this.error.set((e as Error).message);
+    }
+  }
+  async recordTemperature() {
+    try {
+      if (
+        this.temperature === null ||
+        this.temperature === undefined ||
+        String(this.temperature).trim() === ''
+      )
+        throw new Error('Ingresa una temperatura.');
+      await this.ops.recordTemperature(this.id, Number(this.temperature));
+      this.success.set('Lectura registrada. Consulta las alertas para revisar desviaciones.');
+      this.error.set('');
+    } catch (e) {
+      this.error.set((e as Error).message);
+    }
   }
 }

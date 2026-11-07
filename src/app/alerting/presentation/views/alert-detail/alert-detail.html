@@ -1,51 +1,112 @@
-<div class="page-view animate-fade-in">
-  <div class="page-header" style="margin-bottom: 24px; display: flex; align-items: center; gap: 16px;">
-    <a [routerLink]="['/alerts']" class="icon-btn" style="text-decoration: none; color: var(--color-gray-600); background: white; border: 1px solid var(--color-gray-200); border-radius: 8px; padding: 8px; display: flex;">
-      <span class="material-symbols-outlined">arrow_back</span>
-    </a>
-    <div>
-      <h1 class="page-title">{{ 'ALERTS.ALERT_ID' | translate }}: {{ alertId() }}</h1>
-      <p class="page-subtitle">{{ 'ALERTS.SUBTITLE' | translate }}</p>
-    </div>
-  </div>
-
-  @if (alertData()) {
-    <div class="card p-5" style="max-width: 600px;">
-      <div style="display: flex; flex-direction: column; gap: 20px;">
-        
-        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--color-gray-100); padding-bottom: 16px;">
-          <div>
-            <div style="color: var(--color-gray-500); font-size: 12px; margin-bottom: 4px;">{{ 'ALERTS.TYPE' | translate }}</div>
-            <div style="font-weight: 600; font-size: 16px; color: var(--color-gray-900);">{{ 'ALERTS_DATA.' + alertData().type | translate }}</div>
-          </div>
-          <div style="text-align: right;">
-            <div style="color: var(--color-gray-500); font-size: 12px; margin-bottom: 4px;">{{ 'ALERTS.SEVERITY' | translate }}</div>
-            <span class="badge" [class]="getSeverityClass(alertData().severity)">
-              {{ 'ALERTS_DATA.' + alertData().severity | translate }}
-            </span>
-          </div>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--color-gray-100); padding-bottom: 16px;">
-          <div>
-            <div style="color: var(--color-gray-500); font-size: 12px; margin-bottom: 4px;">{{ 'ALERTS.LOCATION' | translate }}</div>
-            <div style="font-weight: 500; color: var(--color-gray-800);">{{ 'ALERTS_DATA.' + alertData().location | translate }}</div>
-          </div>
-          <div style="text-align: right;">
-            <div style="color: var(--color-gray-500); font-size: 12px; margin-bottom: 4px;">{{ 'ALERTS.TIME' | translate }}</div>
-            <div style="font-weight: 500; color: var(--color-gray-800);">{{ 'ALERTS_DATA.' + alertData().time | translate }}</div>
-          </div>
-        </div>
-
-        <div style="padding-top: 8px;">
-          <button class="btn-primary" style="width: 100%;">{{ 'TABLE.EDIT' | translate }}</button>
-        </div>
-
+<div class="flow-page">
+  <a routerLink="/alerts">{{ 'OPERATIONS.BACK_TO_ALERTS' | translate }}</a>
+  @if (alert(); as a) {
+    <header class="flow-header">
+      <div>
+        <h1>{{ a.type | translate }}</h1>
+        <p>{{ a.location }} · {{ a.id }}</p>
       </div>
-    </div>
+      <span
+        class="badge"
+        [class.badge-danger]="a.severity === 'Critical'"
+        [class.badge-warning]="a.severity !== 'Critical'"
+        >{{ a.severity | translate }}</span
+      >
+    </header>
+    <section class="flow-card">
+      <h2>{{ 'OPERATIONS.DETECTED_CONDITION' | translate }}</h2>
+      <p>{{ a.message }}</p>
+      <div class="flow-notice">{{ a.recommendedAction }}</div>
+      @if (related(); as link) {
+        <a [routerLink]="link.route">{{ link.label | translate }} →</a>
+      } @else {
+        <p class="flow-hint">{{ 'OPERATIONS.THIS_HISTORICAL_ALERT_HAS_NO_LINKED_OPERATIONAL_RECORD' | translate }}</p>
+      }
+    </section>
+    <section class="flow-card">
+      <h2>{{ 'OPERATIONS.INCIDENT_RESPONSE' | translate }}</h2>
+      <ol class="flow-steps">
+        <li [class.current]="!incident()" [class.done]="!!incident()"><span>1</span>{{ 'OPERATIONS.DETECTED' | translate }}</li>
+        <li
+          [class.current]="incident()?.status === 'IN_REVIEW'"
+          [class.done]="
+            incident()?.status === 'ACTION_RECORDED' || incident()?.status === 'RESOLVED'
+          "
+        >
+          <span>2</span>{{ 'OPERATIONS.REVIEW' | translate }}
+        </li>
+        <li
+          [class.current]="incident()?.status === 'ACTION_RECORDED'"
+          [class.done]="incident()?.status === 'RESOLVED'"
+        >
+          <span>3</span>{{ 'OPERATIONS.ACTION' | translate }}
+        </li>
+        <li [class.current]="incident()?.status === 'RESOLVED'"><span>4</span>{{ 'OPERATIONS.RESOLUTION' | translate }}</li>
+      </ol>
+      @if (error()) {
+        <p class="flow-error" role="alert">{{ error() | translate }}</p>
+      }
+      @if (!incident()) {
+        <p>{{ 'OPERATIONS.START_THE_REVIEW_TO_ASSIGN_YOURSELF_AND_DOCUMENT_THE' | translate }}</p>
+        <button class="btn-primary" (click)="update('review')">{{ 'OPERATIONS.START_REVIEW' | translate }}</button>
+      }
+      @if (incident(); as i) {
+        <p class="flow-hint">
+          {{ 'OPERATIONS.ASSIGNED_TO_0_STARTED_1' | translate : [(i.actor), (i.openedAt | date: 'dd/MM/yyyy HH:mm')] }}
+        </p>
+        @if (i.status === 'IN_REVIEW') {
+          <div class="flow-grid">
+            <label class="flow-field"
+              >{{ 'OPERATIONS.IDENTIFIED_CAUSE' | translate }}<textarea [(ngModel)]="cause"></textarea></label
+            ><label class="flow-field"
+              >{{ 'OPERATIONS.CORRECTIVE_ACTION_TAKEN' | translate }}<textarea [(ngModel)]="action"></textarea>
+            </label>
+          </div>
+          <label class="flow-field"
+            >{{ 'OPERATIONS.DECISION' | translate }}<select [(ngModel)]="decision">
+              <option value="inspect">{{ 'OPERATIONS.INSPECT_CORRECT_CONDITION' | translate }}</option>
+              <option value="hold">{{ 'OPERATIONS.PLACE_AFFECTED_BATCHES_ON_HOLD' | translate }}</option>
+            </select></label
+          >
+          <p class="flow-hint">
+            {{ 'OPERATIONS.PLACING_BATCHES_ON_HOLD_BLOCKS_THEM_FROM_FUTURE_DISPATCHES' | translate }}
+          </p>
+          <button class="btn-primary" (click)="update('action')">{{ 'OPERATIONS.SAVE_CORRECTIVE_ACTION' | translate }}</button>
+        }
+        @if (i.status === 'ACTION_RECORDED' || i.status === 'RESOLVED') {
+          <dl class="flow-summary">
+            <dt>{{ 'OPERATIONS.CAUSE' | translate }}</dt>
+            <dd>{{ i.cause }}</dd>
+            <dt>{{ 'OPERATIONS.ACTION' | translate }}</dt>
+            <dd>{{ i.action }}</dd>
+            <dt>{{ 'OPERATIONS.DECISION' | translate }}</dt>
+            <dd>{{ i.decision === 'hold' ? ('OPERATIONS.BATCHES_ON_HOLD' | translate) : ('OPERATIONS.INSPECTION_CORRECTION' | translate) }}</dd>
+          </dl>
+        }
+        @if (i.status === 'ACTION_RECORDED') {
+          <label class="flow-field"
+            >{{ 'OPERATIONS.OUTCOME_VERIFICATION' | translate }}<textarea
+              [(ngModel)]="verification"
+              [placeholder]="'OPERATIONS.DESCRIBE_HOW_YOU_VERIFIED_THE_OUTCOME' | translate"
+            ></textarea></label
+          ><button class="btn-primary" (click)="update('resolve')">
+            {{ 'OPERATIONS.VERIFY_AND_RESOLVE_INCIDENT' | translate }}
+          </button>
+        }
+        @if (i.status === 'RESOLVED') {
+          <div class="flow-success" role="status">
+            {{ 'OPERATIONS.INCIDENT_RESOLVED_0' | translate : [(i.updatedAt | date: 'dd/MM/yyyy HH:mm')] }}
+            <p>{{ i.verification }}</p>
+          </div>
+          <p class="flow-hint">
+            {{ 'OPERATIONS.BATCHES_ON_HOLD_REMAIN_BLOCKED_YOU_CAN_RECORD_A' | translate }}
+          </p>
+        }
+      }
+    </section>
   } @else {
-    <div class="card p-5" style="max-width: 600px;">
-      <p style="color: var(--color-gray-500);">Loading...</p>
-    </div>
+    <p class="flow-empty">
+      {{ ops.database.loading() ? ('OPERATIONS.LOADING_ALERT' | translate) : ('OPERATIONS.ALERT_NOT_FOUND_FOR_YOUR_PROFILE' | translate) }}
+    </p>
   }
 </div>

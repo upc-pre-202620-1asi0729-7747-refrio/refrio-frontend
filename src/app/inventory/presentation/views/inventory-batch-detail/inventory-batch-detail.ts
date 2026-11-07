@@ -1,60 +1,62 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
-import { RouterLink, ActivatedRoute } from '@angular/router';
+import { TranslatePipe } from '../../../../shared/pipes/translate.pipe';
+import { Component, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../../../environments/environment';
-
+import { DatePipe } from '@angular/common';
+import { OperationsStore } from '../../../../operations/application/operations.store';
+import { eligible } from '../../../../operations/domain/operations.rules';
 @Component({
   selector: 'app-inventory-batch-detail',
   standalone: true,
-  imports: [RouterLink, FormsModule],
+  imports: [TranslatePipe, RouterLink, FormsModule, DatePipe],
   templateUrl: './inventory-batch-detail.html',
-  styleUrl: './inventory-batch-detail.css'
 })
-export class InventoryBatchDetailComponent implements OnInit {
-  private route = inject(ActivatedRoute);
-  private http = inject(HttpClient);
-  private basePath = environment.serverBasePath;
-
-  productId = signal<string>('');
-  batch = signal<any>(null);
-  product = signal<any>(null);
-  
-  dispatchQuantity: number = 0;
-
-  ngOnInit() {
-    this.route.paramMap.subscribe(params => {
-      const pId = params.get('id');
-      const bId = params.get('batchId');
-      if (pId && bId) {
-        this.productId.set(pId);
-        this.fetchBatch(bId);
-        // También podemos obtener el producto (opcional, si es necesario mostrar el nombre del producto)
-        // Para simplificar, confiaremos en los datos del batch
+export class InventoryBatchDetailComponent {
+  ops = inject(OperationsStore);
+  route = inject(ActivatedRoute);
+  id = this.route.snapshot.paramMap.get('batchId') || '';
+  productId = this.route.snapshot.paramMap.get('id') || '';
+  batch = computed(() =>
+    this.ops.batches().find((b) => b.id === this.id && b.productId === this.productId),
+  );
+  product = computed(() => this.ops.products().find((p) => p.id === this.productId));
+  losses = computed(() => this.ops.losses().filter((l) => l.batchId === this.id));
+  receivedShipment = computed(() => {
+    if (this.ops.role() !== 'Minorista') return undefined;
+    for (const shipment of this.ops.shipments()) {
+      const allocation = shipment.receipt?.quantities.find(
+        (item) => item.quantity > 0 && `REC-${shipment.id}-${item.batchId}` === this.id,
+      );
+      if (allocation && shipment.receipt) {
+        return { id: shipment.id, quantity: allocation.quantity, at: shipment.receipt.at };
       }
-    });
-  }
-
-  fetchBatch(batchId: string) {
-    this.http.get<any>(`${this.basePath}/batches/${batchId}`).subscribe({
-      next: (data) => {
-        this.batch.set(data);
-        this.dispatchQuantity = Number(data.quantity) || 0;
-      },
-      error: (err) => console.error('Failed to load batch', err)
-    });
-  }
-
-  decrease() {
-    if (this.dispatchQuantity > 0) this.dispatchQuantity--;
-  }
-
-  increase() {
-    const max = Number(this.batch()?.quantity) || 0;
-    if (this.dispatchQuantity < max) this.dispatchQuantity++;
-  }
-
-  dispatchAll() {
-    this.dispatchQuantity = Number(this.batch()?.quantity) || 0;
+    }
+    return undefined;
+  });
+  intake = computed(() =>
+    this.ops.database.data().events.find(
+      (event) =>
+        event.aggregateId === this.id &&
+        event.name === 'Lote recibido' &&
+        event.audience === this.ops.role(),
+    ),
+  );
+  eligible = eligible;
+  quantity = 1;
+  cause = '';
+  review = signal(false);
+  error = signal('');
+  success = signal('');
+  async confirm() {
+    try {
+      await this.ops.recordLoss(this.id, Number(this.quantity), this.cause);
+      this.review.set(false);
+      this.success.set('Merma guardada. Las existencias y los indicadores están actualizados.');
+      this.error.set('');
+      this.quantity = 1;
+      this.cause = '';
+    } catch (e) {
+      this.error.set((e as Error).message);
+    }
   }
 }

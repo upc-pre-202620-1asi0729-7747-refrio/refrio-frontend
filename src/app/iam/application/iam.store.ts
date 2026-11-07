@@ -44,14 +44,18 @@ export class IamStore {
         localStorage.setItem('refrio_token', response.token);
         this.isAuthenticated.set(true);
         this.loadCurrentUser();
-        if (response.token === 'mock-jwt-token-bodega') {
+        if (response.role === 'Minorista') {
           this.router.navigate(['/bodeguero-dashboard']);
         } else {
           this.router.navigate(['/dashboard']);
         }
       },
       error: (err) => {
-        this.error.set(err.error?.message ?? 'Invalid credentials');
+        this.error.set(
+          err.status === 401
+            ? 'Usuario o contraseña incorrectos.'
+            : 'No se pudo conectar con la API de inicio de sesión. En local, ejecuta npm run api y reinicia npm start.',
+        );
         this.isLoading.set(false);
       },
     });

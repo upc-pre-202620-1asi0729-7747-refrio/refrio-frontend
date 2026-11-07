@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-
   workflow_dispatch:
 
 permissions:
@@ -21,7 +20,6 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
     runs-on: ubuntu-latest
 
     steps:
@@ -34,17 +32,15 @@ jobs:
           node-version: 24
           cache: npm
 
-      - name: Verificar workspace
-        run: |
-          pwd
-          ls -la
-          test -f angular.json
-
       - name: Instalar dependencias
-        run: npm ci
+        run: npm install # Cambiado a npm install para evitar fallos estrictos del lockfile
 
       - name: Compilar Angular
         run: npx ng build refrio-frontend --configuration production --base-href /refrio-frontend/
+
+      - name: Generar 404.html para rutas SPA
+        # Duplica el index.html para que GitHub Pages soporte las rutas internas de Angular
+        run: cp ./dist/refrio-frontend/browser/index.html ./dist/refrio-frontend/browser/404.html
 
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5

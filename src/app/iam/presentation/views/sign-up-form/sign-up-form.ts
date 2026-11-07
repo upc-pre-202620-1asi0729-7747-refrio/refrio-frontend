@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe } from '../../../../shared/pipes/translate.pipe';
 import { IamStore } from '../../../application/iam.store';
 import { SignUpCommand } from '../../../domain/model/sign-up.command';
@@ -30,8 +30,12 @@ export class SignUpFormComponent {
 
   constructor(
     public iamStore: IamStore,
-    public translationService: TranslationService
-  ) {}
+    public translationService: TranslationService,
+    route: ActivatedRoute,
+  ) {
+    const plan = this.plans.find((option) => option === route.snapshot.queryParamMap.get('plan'));
+    if (plan) this.subscriptionPlan.set(plan);
+  }
 
   onSubmit(): void {
     const command = new SignUpCommand(

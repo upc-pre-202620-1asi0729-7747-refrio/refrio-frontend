@@ -1,110 +1,132 @@
-import { Component, signal, OnInit, inject, computed } from '@angular/core';
+import { TranslatePipe } from '../../../../shared/pipes/translate.pipe';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../../../environments/environment';
-import { TranslatePipe } from '../../../pipes/translate.pipe';
-
-interface Shipment {
-  id: string;
-  product: string;
-  route: string;
-  temperature: string;
-  eta: string;
-  status: 'In Transit' | 'Delivered' | 'Delayed';
-  driver: string;
-  vehicle: string;
-}
+import { Router, RouterLink } from '@angular/router';
+import { DatePipe } from '@angular/common';
+import { OperationsStore } from '../../../../operations/application/operations.store';
+import { Allocation, statusLabels } from '../../../../operations/domain/operations.rules';
 
 @Component({
   selector: 'app-shipments',
   standalone: true,
-  imports: [FormsModule, RouterLink, TranslatePipe],
+  imports: [TranslatePipe, FormsModule, RouterLink, DatePipe],
   templateUrl: './shipments.html',
-  styleUrl: './shipments.css',
 })
-export class ShipmentsComponent implements OnInit {
-  private http = inject(HttpClient);
-  private basePath = environment.serverBasePath;
-  
-  isAddShipmentOpen = signal(false);
-  newShipment = { product: '', batchNumber: '', origin: '', destination: '', temperature: '', eta: '' };
-
-  shipments = signal<Shipment[]>([]);
-  
-  showRoutesDropdown = signal(false);
-  availableRoutes = ['Lima → Surco', 'Callao → Miraflores', 'Lima → San Isidro', 'Surco → Barranco'];
-  selectedRoute = signal<string | null>(null);
-
-  filteredShipments = computed(() => {
-    const route = this.selectedRoute();
-    if (!route) return this.shipments();
-    return this.shipments().filter(s => s.route === route);
-  });
-
-  ngOnInit() {
-    this.fetchShipments();
+export class ShipmentsComponent {
+  ops = inject(OperationsStore);
+  private router = inject(Router);
+  labels: Record<string, string> = statusLabels;
+  open = signal(false);
+  step = signal(0);
+  error = signal('');
+  filter = signal('ALL');
+  steps = ['Pedido', 'Picking FEFO', 'Transporte', 'Confirmación'];
+  lines = [{ productId: '', quantity: 1 }];
+  clientId = '';
+  private expectedRecipientId = '';
+  origin = '';
+  destination = '';
+  driver = '';
+  vehicle = '';
+  eta = '';
+  plan: Allocation[] = [];
+  codes: string[] = [];
+  get preparingCount() {
+    return this.ops.shipments().filter((s) => s.status === 'Preparing').length;
   }
-
-  fetchShipments() {
-    this.http.get<Shipment[]>(`${this.basePath}/shipments`).subscribe({
-      next: (data) => {
-        this.shipments.set(data);
-        // Extract unique routes if needed, but we hardcoded a few common ones
-        const unique = Array.from(new Set(data.map(d => d.route)));
-        if (unique.length > 0) this.availableRoutes = unique;
-      },
-      error: (err) => console.error('Failed to load shipments', err)
-    });
+  get clientName() {
+    return this.ops.clients().find((c) => c.id === this.clientId)?.name;
   }
-
-  toggleRoutesDropdown() {
-    this.showRoutesDropdown.update(v => !v);
+  get linkedClients() {
+    return this.ops.clients().filter((client) => !!client.recipientId);
   }
-
-  selectRoute(route: string | null) {
-    this.selectedRoute.set(route);
-    this.showRoutesDropdown.set(false);
+  get filtered() {
+    return this.ops
+      .shipments()
+      .filter((s) => this.filter() === 'ALL' || s.status === this.filter());
   }
-
-  getStatusClass(status: string): string {
-    switch (status) {
-      case 'In Transit': return 'badge-primary';
-      case 'Delivered':  return 'badge-success';
-      case 'Delayed':    return 'badge-danger';
-      default:           return '';
+  get productOptions() {
+    return this.ops.database.data().inventory;
+  }
+  get total() {
+    return this.plan.reduce((sum, a) => sum + a.quantity, 0);
+  }
+  batch(id: string) {
+    return this.ops.database.data().batches.find((b) => b.id === id);
+  }
+  product(id: string) {
+    return this.productOptions.find((p) => p.id === id)?.name || id;
+  }
+  start() {
+    this.lines = [{ productId: '', quantity: 1 }];
+    this.clientId = '';
+    this.expectedRecipientId = '';
+    this.origin = '';
+    this.destination = '';
+    this.driver = '';
+    this.vehicle = '';
+    this.eta = '';
+    this.plan = [];
+    this.codes = [];
+    this.step.set(0);
+    this.error.set('');
+    this.open.set(true);
+  }
+  chooseClient() {
+    this.destination = this.ops.clients().find((c) => c.id === this.clientId)?.district || '';
+  }
+  next() {
+    this.error.set('');
+    try {
+      if (this.step() === 0) {
+        const client = this.linkedClients.find((item) => item.id === this.clientId);
+        if (!client?.recipientId) throw new Error('Selecciona el cliente receptor.');
+        this.expectedRecipientId = client.recipientId;
+        if (
+          !this.lines.length ||
+          new Set(this.lines.map((l) => l.productId)).size !== this.lines.length
+        )
+          throw new Error('Selecciona productos sin repetir.');
+        this.plan = this.ops.plan(this.lines);
+        this.codes = this.plan.map(() => '');
+      }
+      if (this.step() === 1 && this.plan.some((a, i) => this.codes[i]?.trim() !== a.batchId))
+        throw new Error(
+          'El código no coincide. Ingresa los códigos de los lotes en la secuencia FEFO indicada.',
+        );
+      if (this.step() === 2) {
+        if (
+          ![this.origin, this.destination, this.driver, this.vehicle, this.eta].every((v) =>
+            v.trim(),
+          )
+        )
+          throw new Error('Completa los datos del transporte.');
+        if (!(Date.parse(this.eta) > Date.now()))
+          throw new Error('Selecciona una entrega estimada futura.');
+      }
+      this.step.update((s) => s + 1);
+    } catch (e) {
+      this.error.set((e as Error).message);
     }
   }
-
-  openAddShipment() {
-    this.newShipment = { product: '', batchNumber: '', origin: '', destination: '', temperature: '', eta: '' };
-    this.isAddShipmentOpen.set(true);
-  }
-
-  closeAddShipment() {
-    this.isAddShipmentOpen.set(false);
-  }
-
-  addShipment() {
-    if (!this.newShipment.product || !this.newShipment.origin || !this.newShipment.destination) return;
-    
-    const newRecord = {
-      id: `FK-${Math.floor(Math.random() * 1000) + 1000}`,
-      product: this.newShipment.product,
-      route: `${this.newShipment.origin} → ${this.newShipment.destination}`,
-      temperature: this.newShipment.temperature || '4°C',
-      eta: this.newShipment.eta || 'TBD',
-      status: 'In Transit',
-      driver: 'Pending',
-      vehicle: 'Pending'
-    };
-    
-    this.http.post<Shipment>(`${this.basePath}/shipments`, newRecord).subscribe({
-      next: (saved) => {
-        this.shipments.update(list => [saved, ...list]);
-        this.closeAddShipment();
-      },
-      error: (err) => console.error('Failed to save shipment', err)
-    });
+  async confirm() {
+    this.error.set('');
+    try {
+      const id = await this.ops.createShipment({
+        clientId: this.clientId,
+        expectedRecipientId: this.expectedRecipientId,
+        origin: this.origin,
+        destination: this.destination,
+        driver: this.driver,
+        vehicle: this.vehicle,
+        eta: this.eta,
+        lines: this.lines,
+        scanned: this.codes.map((c) => c.trim()),
+      });
+      this.open.set(false);
+      this.router.navigate(['/shipments', id]);
+    } catch (e) {
+      this.error.set((e as Error).message);
+    }
   }
 }

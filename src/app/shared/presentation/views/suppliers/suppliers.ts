@@ -3,6 +3,18 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../../environments/environment';
 import { TranslatePipe } from '../../../pipes/translate.pipe';
+import type { Client } from '../../../../operations/domain/operations.rules';
+
+interface RetailAccount {
+  id: string;
+  username: string;
+}
+
+interface ClientRow extends Client {
+  type: string;
+  orders: number;
+  province: string;
+}
 
 @Component({
   selector: 'app-suppliers',
@@ -33,14 +45,26 @@ import { TranslatePipe } from '../../../pipes/translate.pipe';
         </div>
         <div class="table-wrapper">
           <table class="data-table">
+            <colgroup>
+              <col style="width: 11%">
+              <col style="width: 17%">
+              <col style="width: 13%">
+              <col style="width: 9%">
+              <col style="width: 11%">
+              <col style="width: 11%">
+              <col style="width: 12%">
+              <col style="width: 16%">
+            </colgroup>
             <thead>
               <tr>
                 <th>{{ 'TABLE.CLIENT_ID' | translate }}</th>
                 <th>{{ 'TABLE.NAME' | translate }}</th>
                 <th>{{ 'TABLE.BUSINESS_TYPE' | translate }}</th>
-                <th style="text-align:center">{{ 'TABLE.ORDERS_MONTH' | translate }}<br><small style="font-weight:400; font-size:10px">({{ 'TABLE.MONTH' | translate }})</small></th>
+                <th>{{ 'TABLE.ORDERS_MONTH' | translate }}<br><small style="font-weight:400; font-size:10px">({{ 'TABLE.MONTH' | translate }})</small></th>
                 <th>{{ 'TABLE.PROVINCE' | translate }}</th>
                 <th>{{ 'TABLE.DISTRICT' | translate }}</th>
+                <th>{{ 'CLIENTS.RETAIL_ACCOUNT' | translate }}</th>
+                <th>{{ 'OPERATIONS.ACTIONS' | translate }}</th>
               </tr>
             </thead>
             <tbody>
@@ -49,9 +73,17 @@ import { TranslatePipe } from '../../../pipes/translate.pipe';
                   <td class="fw-600">{{ cli.id }}</td>
                   <td>{{ cli.name }}</td>
                   <td class="text-muted">{{ cli.type }}</td>
-                  <td style="text-align:center">{{ cli.orders }}</td>
+                  <td>{{ cli.orders }}</td>
                   <td class="fw-600" [class.text-success]="cli.province === 'Lima' || cli.province === 'Ica'" [class.text-warning]="cli.province !== 'Lima' && cli.province !== 'Ica'">{{ cli.province }}</td>
                   <td class="fw-600">{{ cli.district }}</td>
+                  <td>
+                    {{ cli.recipientId ? (accountName(cli.recipientId) || ('CLIENTS.ACCOUNT_LINKED' | translate)) : ('CLIENTS.NO_ACCOUNT_LINKED' | translate) }}
+                  </td>
+                  <td>
+                    <button type="button" class="btn-secondary account-action" (click)="openRecipient(cli)">
+                      {{ (cli.recipientId ? 'CLIENTS.CHANGE_ACCOUNT' : 'CLIENTS.LINK_ACCOUNT') | translate }}
+                    </button>
+                  </td>
                 </tr>
               }
             </tbody>
@@ -65,24 +97,46 @@ import { TranslatePipe } from '../../../pipes/translate.pipe';
       <div class="modal-overlay" (click)="closeAddClient()">
         <div class="modal-content" style="max-width: 400px;" (click)="$event.stopPropagation()">
           <div class="modal-header">
-            <h3 class="modal-title">{{ 'CLIENTS.MODAL_ADD_TITLE' | translate }}</h3>
+            <h3 class="modal-title">{{ (editing() ? 'CLIENTS.LINK_ACCOUNT' : 'CLIENTS.MODAL_ADD_TITLE') | translate }}</h3>
             <button class="btn-close" (click)="closeAddClient()">
               <span class="material-symbols-outlined">close</span>
             </button>
           </div>
           <div class="modal-body">
+            @if (editing()) {
+              <p>{{ newClient.name }}</p>
+            } @else {
             <div class="form-group">
-              <label>Client code</label>
+              <label>{{ 'OPERATIONS.CLIENT_CODE' | translate }}</label>
               <input type="text" class="form-control" [(ngModel)]="newClient.id" placeholder="CLI-4056-4567">
             </div>
             <div class="form-group">
-              <label>Description</label>
-              <textarea class="form-control" [(ngModel)]="newClient.name" placeholder="Sell ..."></textarea>
+              <label>{{ 'OPERATIONS.DESCRIPTION' | translate }}</label>
+              <textarea class="form-control" [(ngModel)]="newClient.name" [placeholder]="'OPERATIONS.DESCRIPTION_2' | translate"></textarea>
             </div>
+            }
+            <label class="flow-field">
+              {{ 'CLIENTS.RETAIL_ACCOUNT' | translate }}
+              <select [(ngModel)]="newClient.recipientId" [disabled]="loadingAccounts() || accountError()">
+                <option value="">{{ 'CLIENTS.NO_ACCOUNT_LINKED' | translate }}</option>
+                @for (account of accounts(); track account.id) {
+                  <option [value]="account.id">{{ account.username }}</option>
+                }
+              </select>
+            </label>
+            <p class="flow-hint">{{ 'CLIENTS.RETAIL_ACCOUNT_HINT' | translate }}</p>
+            @if (accountError()) {
+              <p class="flow-error" role="alert">{{ 'CLIENTS.ACCOUNTS_LOAD_ERROR' | translate }}</p>
+            }
+            @if (saveError()) {
+              <p class="flow-error" role="alert">{{ saveError() | translate }}</p>
+            }
           </div>
           <div class="modal-footer">
-            <button class="btn-cancel" (click)="closeAddClient()">Cancel</button>
-            <button class="btn-submit" (click)="addClient()">Add Client</button>
+            <button class="btn-cancel" (click)="closeAddClient()">{{ 'OPERATIONS.CANCEL_2' | translate }}</button>
+            <button class="btn-submit" (click)="saveClient()" [disabled]="saving() || loadingAccounts() || accountError() || !newClient.id.trim()">
+              {{ (editing() ? 'OPERATIONS.SAVE_CHANGES' : 'OPERATIONS.ADD_CLIENT') | translate }}
+            </button>
           </div>
         </div>
       </div>
@@ -104,7 +158,9 @@ import { TranslatePipe } from '../../../pipes/translate.pipe';
     .action-link { font-size: var(--font-size-sm); color: var(--color-primary); font-weight: 600; text-decoration: none; }
     .action-link:hover { text-decoration: underline; }
     .table-wrapper { overflow-x: auto; }
-    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table { width: 100%; min-width: 860px; table-layout: fixed; border-collapse: collapse; }
+    .data-table td { overflow-wrap: anywhere; }
+    .account-action { white-space: nowrap; }
     .data-table th { text-align: left; font-size: var(--font-size-xs); font-weight: 600; color: var(--color-gray-500); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-gray-200); }
     .data-table td { padding: var(--space-4); font-size: var(--font-size-sm); color: var(--color-gray-700); border-bottom: 1px solid var(--color-gray-100); vertical-align: middle; }
     .data-table tr:last-child td { border-bottom: none; }
@@ -121,48 +177,101 @@ export class SuppliersComponent implements OnInit {
   
   isAddClientOpen = signal(false);
 
-  clients = signal<any[]>([]);
+  clients = signal<ClientRow[]>([]);
+  accounts = signal<RetailAccount[]>([]);
+  editing = signal(false);
+  loadingAccounts = signal(false);
+  accountError = signal(false);
+  saving = signal(false);
+  saveError = signal('');
 
   ngOnInit() {
     this.fetchClients();
+    this.fetchAccounts();
   }
 
   fetchClients() {
-    this.http.get<any[]>(`${this.basePath}/clients`).subscribe({
+    this.http.get<ClientRow[]>(`${this.basePath}/clients`).subscribe({
       next: (data) => this.clients.set(data),
       error: (err) => console.error('Failed to load clients', err)
     });
   }
 
-  newClient = { id: '', name: '' };
+  newClient = { id: '', name: '', recipientId: '' };
 
   openAddClient() {
-    this.newClient = { id: '', name: '' };
+    this.editing.set(false);
+    this.newClient = { id: '', name: '', recipientId: '' };
+    this.openClientForm();
+  }
+
+  openRecipient(client: ClientRow) {
+    this.editing.set(true);
+    this.newClient = { id: client.id, name: client.name, recipientId: client.recipientId ?? '' };
+    this.openClientForm();
+  }
+
+  private openClientForm() {
+    this.saveError.set('');
     this.isAddClientOpen.set(true);
+    this.fetchAccounts();
+  }
+
+  private fetchAccounts() {
+    if (this.loadingAccounts()) return;
+    this.loadingAccounts.set(true);
+    this.accountError.set(false);
+    this.http.get<RetailAccount[]>(`${this.basePath}/retail-accounts`).subscribe({
+      next: (accounts) => {
+        this.accounts.set(accounts);
+        this.loadingAccounts.set(false);
+      },
+      error: () => {
+        this.accountError.set(true);
+        this.loadingAccounts.set(false);
+      },
+    });
+  }
+
+  accountName(id: string) {
+    return this.accounts().find((account) => account.id === id)?.username;
   }
 
   closeAddClient() {
-    this.isAddClientOpen.set(false);
+    if (!this.saving()) this.isAddClientOpen.set(false);
   }
 
-  addClient() {
-    if (!this.newClient.id) return;
+  saveClient() {
+    if (!this.newClient.id.trim() || this.saving()) return;
+    this.saving.set(true);
+    this.saveError.set('');
+    const editing = this.editing();
     
     const newRecord = {
-      id: this.newClient.id,
+      id: this.newClient.id.trim(),
       name: this.newClient.name || 'New Client',
       type: 'Bodega',
       orders: 0,
       province: 'Lima',
-      district: 'N/A'
+      district: 'N/A',
+      recipientId: this.newClient.recipientId,
     };
     
-    this.http.post<any>(`${this.basePath}/clients`, newRecord).subscribe({
+    const request = editing
+      ? this.http.patch<ClientRow>(`${this.basePath}/clients/${encodeURIComponent(newRecord.id)}/recipient`, {
+          recipientId: newRecord.recipientId,
+        })
+      : this.http.post<ClientRow>(`${this.basePath}/clients`, newRecord);
+    request.subscribe({
       next: (saved) => {
-        this.clients.update(list => [saved, ...list]);
+        this.clients.update(list => editing ? list.map(item => item.id === saved.id ? saved : item) : [saved, ...list]);
+        this.saving.set(false);
         this.closeAddClient();
       },
-      error: (err) => console.error('Failed to save client', err)
+      error: (err) => {
+        this.saving.set(false);
+        this.saveError.set(err.error?.message || 'CLIENTS.SAVE_LINK_ERROR');
+      },
     });
   }
 }

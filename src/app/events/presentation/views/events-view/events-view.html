@@ -1,0 +1,69 @@
+<section class="events-view animate-fade-in">
+  <header class="page-header">
+    <div>
+      <h1>{{ 'OPERATIONS.DOMAIN_EVENTS' | translate }}</h1>
+      <p class="subtitle">{{ 'OPERATIONS.AUDIT_EACH_BATCH_FROM_RECEIPT_TO_FEFO_DISPATCH' | translate }}</p>
+    </div>
+  </header>
+
+  <div class="flow" [attr.aria-label]="'OPERATIONS.BATCH_WORKFLOW' | translate">
+    <div><span>1</span><strong>{{ 'Lote recibido' | translate }}</strong></div>
+    <i></i>
+    <div><span>2</span><strong>{{ 'OPERATIONS.TEMPERATURE_EVALUATED' | translate }}</strong></div>
+    <i></i>
+    <div><span>3</span><strong>{{ 'OPERATIONS.ALERT_AND_DECISION' | translate }}</strong></div>
+    <i></i>
+    <div><span>4</span><strong>{{ 'OPERATIONS.FEFO_DISPATCH' | translate }}</strong></div>
+  </div>
+
+  <div class="toolbar card">
+    <label>
+      <span class="material-symbols-outlined">search</span>
+      <input type="search" [placeholder]="'OPERATIONS.SEARCH_EVENTS_BATCHES_OR_ASSIGNEES' | translate" (input)="updateSearch($event)">
+    </label>
+    <select [ngModel]="selectedContext()" (ngModelChange)="selectedContext.set($event)" [attr.aria-label]="'OPERATIONS.FILTER_BY_CONTEXT' | translate">
+      @for (context of contexts(); track context) {
+        <option [value]="context">{{ context === 'ALL' ? ('OPERATIONS.ALL_CONTEXTS' | translate) : context }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="card event-card">
+    <div class="event-summary">
+      <div><strong>{{ filteredEvents().length }}</strong><span>{{ 'OPERATIONS.VISIBLE_EVENTS' | translate }}</span></div>
+      <div><strong>{{ events().length }}</strong><span>{{ 'OPERATIONS.RECORDED_EVENTS' | translate }}</span></div>
+      <div><strong>{{ contexts().length - 1 }}</strong><span>{{ 'OPERATIONS.CONTEXTS' | translate }}</span></div>
+    </div>
+
+    @if (isLoading()) {
+      <p class="empty">{{ 'OPERATIONS.LOADING_EVENTS' | translate }}</p>
+    } @else if (filteredEvents().length === 0) {
+      <p class="empty">{{ 'OPERATIONS.NO_EVENTS_MATCH_THE_FILTERS' | translate }}</p>
+    } @else {
+      <ol class="timeline">
+        @for (event of filteredEvents(); track event.id) {
+          <li [class]="'outcome-' + event.outcome.toLowerCase()">
+            <div class="event-icon"><span class="material-symbols-outlined">{{ eventIcon(event) }}</span></div>
+            <div class="event-content">
+              <div class="event-title-row">
+                <div>
+                  <h2>{{ event.name | translate }}</h2>
+                  <span class="context">{{ event.context }}</span>
+                </div>
+                <time [dateTime]="event.occurredAt">{{ event.occurredAt | date:'dd/MM/yyyy, HH:mm' }}</time>
+              </div>
+              <p>{{ event.description }}</p>
+              <div class="metadata">
+                <span><b>{{ 'OPERATIONS.ENTITY' | translate }}</b> {{ event.aggregateId }}</span>
+                <span><b>{{ 'OPERATIONS.ASSIGNEE' | translate }}</b> {{ event.actor }}</span>
+                <span class="source" [class.simulated]="event.source === 'SIMULATED'">
+                  {{ event.source === 'SIMULATED' ? ('OPERATIONS.SIMULATED_DATA' | translate) : event.source === 'USER' ? ('OPERATIONS.USER_ACTION' | translate) : ('OPERATIONS.SYSTEM_RULE' | translate) }}
+                </span>
+              </div>
+            </div>
+          </li>
+        }
+      </ol>
+    }
+  </div>
+</section>

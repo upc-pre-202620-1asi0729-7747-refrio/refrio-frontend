@@ -1,190 +1,191 @@
-<div class="page-view animate-fade-in">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
-    <a routerLink="/inventory" class="back-link">
-      <span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span>
-      Back to Inventory
-    </a>
-    <button class="btn-secondary" style="font-size:12px; padding: 6px 16px; border-radius:20px;">
-      <span class="material-symbols-outlined" style="font-size:16px; color:var(--color-gray-600);">edit</span>
-      Editar
-    </button>
-  </div>
-
-  <div class="card product-header-card">
-    <div class="product-info-wrapper">
-      <div class="product-image">
-        <img src="https://images.unsplash.com/photo-1518118014877-c37073eb4ea9?q=80&w=200&auto=format&fit=crop" alt="Strawberries">
+<div class="flow-page">
+  <a routerLink="/inventory">{{ 'OPERATIONS.BACK_TO_INVENTORY' | translate }}</a>
+  @if (product(); as p) {
+    <header class="flow-header">
+      <div>
+        <h1>{{ p.name }}</h1>
+        <p>{{ p.id }} · {{ p.category }} · {{ p.warehouse }}</p>
       </div>
-      <div class="product-details">
-        <div style="display:flex; align-items:center; gap:12px;">
-          <h1 style="font-size:24px; font-weight:800; color:var(--color-gray-900); letter-spacing:-0.03em;">{{ product()?.name }}</h1>
-          <span class="badge" style="background:var(--color-gray-200); color:var(--color-gray-700); font-size:10px;">{{ product()?.id }}</span>
-        </div>
-        <div class="text-muted" style="font-size:13px; margin-top:4px;">{{ product()?.warehouse }} • {{ product()?.category }}</div>
-        <div class="text-muted" style="font-size:12px; margin-top:8px;">Expiration: {{ product()?.exp }}</div>
+      <button class="btn-primary" (click)="start()">
+        {{ (isSupplier() ? 'OPERATIONS.REGISTER_NEW_BATCH' : 'OPERATIONS.RECEIVE_NEW_BATCH') | translate }}
+      </button>
+    </header>
+    @if (success()) {
+      <p class="flow-success" role="status">{{ success() | translate }}</p>
+    }
+    @if (error() && !open()) {
+      <p class="flow-error" role="alert">{{ error() | translate }}</p>
+    }
+    <div class="flow-metrics">
+      <div class="flow-card">
+        <span>{{ 'OPERATIONS.TOTAL_STOCK_2' | translate }}</span><strong>{{ p.stock }} u.</strong>
+      </div>
+      <div class="flow-card">
+        <span>{{ 'OPERATIONS.REGISTERED_BATCHES' | translate }}</span><strong>{{ batches().length }}</strong>
+      </div>
+      <div class="flow-card">
+        <span>{{ 'OPERATIONS.LATEST_TEMPERATURE' | translate }}</span><strong>{{ p.temp }}</strong>
       </div>
     </div>
-    <div class="product-status">
-      <span class="badge" style="background:#a5f3fc; color:#164e63; padding: 6px 12px; border-radius: 20px;">
-        <span class="dot" style="background:#0891b2;"></span> Good condition
-      </span>
-    </div>
-  </div>
-
-  <div class="content-grid">
-    <div class="left-column">
-      <div class="card">
-        <div class="card-header-flex p-4" style="border-bottom:1px solid var(--color-gray-200);">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span class="material-symbols-outlined" style="color:var(--color-primary)">list</span>
-            <div>
-              <h2 class="card-title">Lots available in cold storage</h2>
-              <div class="text-muted" style="font-size:11px;">Organized by expiration date to prevent waste</div>
-            </div>
-          </div>
-          <div style="display:flex; align-items:center; gap:8px;">
-            <button class="btn-secondary" style="font-size:11px; padding: 4px 12px; border-radius:16px; background:var(--color-gray-100);">
-              <span class="material-symbols-outlined" style="font-size:14px;">qr_code_scanner</span> Scan Batch
-            </button>
-            <button class="btn-primary" style="font-size:11px; padding: 4px 12px; border-radius:16px;" (click)="openAddBatch()">
-              <span class="material-symbols-outlined" style="font-size:14px;">add</span> Add batch
-            </button>
-          </div>
-        </div>
-        
-        <div class="table-wrapper">
-          <table class="data-table">
-            <thead>
+    <section class="flow-card">
+      <h2>{{ 'OPERATIONS.BATCHES_ORDERED_BY_EXPIRATION' | translate }}</h2>
+      <p class="flow-hint">{{ 'OPERATIONS.ONLY_ELIGIBLE_BATCHES_ARE_INCLUDED_IN_FEFO_PICKING' | translate }}</p>
+      <div class="flow-table-wrap">
+        <table class="flow-table">
+          <thead>
+            <tr>
+              <th>{{ 'OPERATIONS.BATCH_LOCATION' | translate }}</th>
+              <th>{{ 'OPERATIONS.BALANCE' | translate }}</th>
+              <th>{{ 'OPERATIONS.EXPIRATION' | translate }}</th>
+              <th>{{ 'OPERATIONS.CONDITION' | translate }}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (b of batches(); track b.id) {
               <tr>
-                <th>BATCH</th>
-                <th>QUANTITY</th>
-                <th>EXPIRATION</th>
-                <th>RECOMMENDATION</th>
-                <th>ACTION</th>
+                <td>
+                  <strong>{{ b.id }}</strong
+                  ><small>{{ b.location }}</small>
+                </td>
+                <td>{{ b.quantity }} u.</td>
+                <td>{{ b.expirationDate }}</td>
+                <td>
+                  <span
+                    class="badge"
+                    [class.badge-success]="eligible(b)"
+                    [class.badge-danger]="!eligible(b)"
+                    >{{ b.quantity === 0
+                        ? ('OPERATIONS.OUT_OF_STOCK' | translate)
+                        : b.status === 'Inmovilizado'
+                          ? ('OPERATIONS.ON_HOLD' | translate)
+                          : eligible(b)
+                            ? ('OPERATIONS.ELIGIBLE' | translate)
+                            : ('OPERATIONS.INELIGIBLE_FOR_DISPATCH' | translate) }}</span
+                  >
+                </td>
+                <td>
+                  <a [routerLink]="['/inventory', p.id, 'batch', b.id]">{{ 'OPERATIONS.DETAILS_AND_TRANSACTIONS' | translate }}</a>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              @for (batch of batches(); track batch.id) {
-                <tr>
-                  <td>
-                    <div class="fw-600 text-gray-900">{{ batch.id }}</div>
-                    <div class="text-muted" style="font-size:10px;">{{ batch.location }}</div>
-                  </td>
-                  <td>
-                    <div class="fw-600 text-gray-900">{{ batch.quantity }} units</div>
-                    <div class="text-muted" style="font-size:10px;">{{ batch.weight }}</div>
-                  </td>
-                  <td>
-                    <div class="fw-600" [style.color]="batch.status === 'Vender ya' ? '#dc2626' : 'var(--color-gray-900)'">{{ batch.expirationDate }}</div>
-                    <div [style.color]="batch.status === 'Vender ya' ? '#dc2626' : 'var(--color-primary)'" style="font-size:10px; font-weight:600;">{{ batch.status }}</div>
-                  </td>
-                  <td>
-                    <span class="badge" [style.background]="batch.status === 'Vender ya' ? '#fee2e2' : (batch.status === 'Fresh' ? '#cffafe' : 'var(--color-primary)')" 
-                                      [style.color]="batch.status === 'Vender ya' ? '#991b1b' : (batch.status === 'Fresh' ? '#0891b2' : 'white')">
-                      {{ batch.status }}
-                    </span>
-                  </td>
-                  <td><a [routerLink]="['/inventory', product()?.id, 'batch', batch.id]" class="fw-600" style="color:var(--color-gray-700); font-size:11px; text-decoration:none;">View details</a></td>
-                </tr>
-              }
-              @if (batches().length === 0) {
-                <tr>
-                  <td colspan="5" style="text-align:center; padding: 24px; color: var(--color-gray-500);">No batches found for this product.</td>
-                </tr>
-              }
-            </tbody>
-          </table>
+            } @empty {
+              <tr>
+                <td colspan="5" class="flow-empty">
+                  {{ 'OPERATIONS.REGISTER_THE_FIRST_BATCH_TO_ADD_STOCK' | translate }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section class="flow-card">
+      <h2>{{ 'OPERATIONS.RECORD_A_TEMPERATURE_READING' | translate }}</h2>
+      <p class="flow-hint">
+        {{ 'OPERATIONS.MANUAL_READING_FOR_DEMONSTRATION_SAVING_IT_RECHECKS_TEMPERATURE_ALERTS' | translate }}
+      </p>
+      <div class="temperature-reading">
+        <label for="control-temperature">{{ 'OPERATIONS.TEMPERATURE_C' | translate }}</label>
+        <div class="flow-actions">
+          <input
+            id="control-temperature"
+            type="number"
+            [(ngModel)]="temperature"
+            [placeholder]="'OPERATIONS.EG_9' | translate"
+          />
+          <button class="btn-primary" (click)="recordTemperature()">
+            {{ 'OPERATIONS.SAVE_READING' | translate }}
+          </button>
+          <a routerLink="/alerts">{{ 'OPERATIONS.REVIEW_ALERTS' | translate }}</a>
         </div>
       </div>
-    </div>
-
-    <div class="right-column">
-      <div class="card p-5">
-        <div style="font-size:10px; font-weight:700; color:var(--color-primary); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:8px;">CURRENT TEMPERATURE</div>
-        <div style="display:flex; align-items:baseline; gap:4px; margin-bottom:16px;">
-          <span style="font-size:42px; font-weight:800; color:var(--color-gray-900); letter-spacing:-0.05em;">{{ product()?.temp }}</span>
-        </div>
-        <div style="background:var(--color-gray-50); padding:12px; border-radius:8px; display:flex; gap:8px; align-items:flex-start;">
-          <span class="material-symbols-outlined" style="color:var(--color-primary); font-size:16px;">ac_unit</span>
-          <div style="font-size:11px; color:var(--color-gray-600);">
-            Tu cámara está enfriando<br>(Rango ideal: 2°C a 4°C).
-          </div>
-        </div>
-      </div>
-
-      <div class="card p-5">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-          <div style="font-size:10px; font-weight:700; color:var(--color-gray-700); letter-spacing:0.05em; text-transform:uppercase;">STOCK IN WAREHOUSE</div>
-          <div style="width:20px; height:20px; background:var(--color-gray-200); border-radius:4px;"></div>
-        </div>
-        <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:16px;">
-          <span style="font-size:42px; font-weight:800; color:var(--color-gray-900); letter-spacing:-0.05em;">{{ product()?.stock }}</span>
-          <span style="font-size:14px; font-weight:600; color:var(--color-gray-600);">units</span>
-        </div>
-        <div style="font-size:12px; color:var(--color-gray-600); margin-bottom:8px;">3 register batch</div>
-        <div style="background:var(--color-gray-50); padding:12px; border-radius:8px; font-size:11px; font-family:monospace; font-weight:600; color:var(--color-gray-700);">
-          (Total: 900 kg)
-        </div>
-      </div>
-    </div>
-  </div>
+    </section>
+  } @else {
+    <p class="flow-empty">
+      {{ ops.database.loading() ? ('OPERATIONS.LOADING_PRODUCT' | translate) : ('OPERATIONS.PRODUCT_NOT_FOUND_FOR_YOUR_PROFILE' | translate) }}
+    </p>
+  }
 </div>
-
-<!-- Register New Batch Modal -->
-@if (isAddBatchOpen()) {
-  <div class="modal-overlay" (click)="closeAddBatch()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3 class="modal-title">Register New Batch</h3>
-        <button class="btn-close" (click)="closeAddBatch()">
-          <span class="material-symbols-outlined">close</span>
+@if (open()) {
+  <div class="modal-overlay">
+    <section class="flow-dialog" role="dialog" aria-modal="true" aria-labelledby="intake-title">
+      <header class="flow-header">
+        <h2 id="intake-title">
+          {{ (isSupplier() ? 'OPERATIONS.REGISTER_BATCH_0' : 'OPERATIONS.RECEIVE_BATCH_0') | translate : [product()?.name] }}
+        </h2>
+        <button class="btn-secondary" (click)="open.set(false)">{{ 'OPERATIONS.CLOSE' | translate }}</button>
+      </header>
+      <ol class="flow-steps">
+        @for (s of steps(); track s; let i = $index) {
+          <li [class.current]="step() === i" [class.done]="step() > i">
+            <span>{{ i + 1 }}</span
+            >{{ s | translate }}
+          </li>
+        }
+      </ol>
+      @if (error()) {
+        <p class="flow-error" role="alert">{{ error() | translate }}</p>
+      }
+      @switch (step()) {
+        @case (0) {
+          <div class="flow-grid">
+            <label class="flow-field"
+              >{{ 'OPERATIONS.BATCH_CODE' | translate }}<input [(ngModel)]="form.id" placeholder="LOT-001" /></label
+            ><label class="flow-field"
+              >{{ 'OPERATIONS.QUANTITY_UNITS' | translate }}<input
+                type="number"
+                min="1"
+                step="1"
+                [(ngModel)]="form.quantity" /></label
+            ><label class="flow-field"
+              >{{ (isSupplier() ? 'OPERATIONS.BATCH_ENTRY_DATE' : 'OPERATIONS.RECEIPT_DATE') | translate }}<input type="date" [(ngModel)]="form.receptionDate" /></label
+            ><label class="flow-field"
+              >{{ 'OPERATIONS.EXPIRATION' | translate }}<input type="date" [(ngModel)]="form.expirationDate"
+            /></label>
+          </div>
+        }
+        @case (1) {
+          @if (!isSupplier()) {
+            <label class="flow-field">{{ 'OPERATIONS.SUPPLIER' | translate }}<input [(ngModel)]="form.supplier" /></label>
+          }
+          <label class="flow-field"
+            >{{ 'OPERATIONS.COLD_ROOM_PHYSICAL_LOCATION' | translate }}<input
+              [(ngModel)]="form.location"
+              [placeholder]="'OPERATIONS.COLD_ROOM_01_RACK_A2' | translate" /></label
+          ><label class="flow-field"
+            >{{ 'OPERATIONS.INSPECTION_NOTES' | translate }}<textarea [(ngModel)]="form.notes"></textarea>
+          </label>
+        }
+        @case (2) {
+          <div class="flow-notice">
+            {{ 'OPERATIONS.ADD_0_UNITS_TO_THE_STOCK_OF_1' | translate : [(form.quantity), (product()?.name)] }}
+          </div>
+          <dl class="flow-summary">
+            <dt>{{ 'OPERATIONS.BATCH' | translate }}</dt>
+            <dd>{{ form.id }}</dd>
+            <dt>{{ (isSupplier() ? 'OPERATIONS.BATCH_ENTRY_DATE' : 'OPERATIONS.RECEIPT_DATE') | translate }}</dt>
+            <dd>{{ form.receptionDate }}</dd>
+            <dt>{{ 'OPERATIONS.EXPIRATION' | translate }}</dt>
+            <dd>{{ form.expirationDate }}</dd>
+            <dt>{{ 'OPERATIONS.SUPPLIER' | translate }}</dt>
+            <dd>{{ isSupplier() ? supplierName() : form.supplier }}</dd>
+            <dt>{{ 'OPERATIONS.LOCATION' | translate }}</dt>
+            <dd>{{ form.location }}</dd>
+          </dl>
+        }
+      }
+      <footer class="flow-footer">
+        <button class="btn-secondary" (click)="step() ? step.set(step() - 1) : open.set(false)">
+          {{ step() ? ('OPERATIONS.BACK' | translate) : ('OPERATIONS.CANCEL' | translate) }}
         </button>
-      </div>
-      <div class="modal-body">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Product</label>
-            <input type="text" class="form-control" [(ngModel)]="newBatch.product" disabled style="background: var(--color-gray-50)">
-          </div>
-          <div class="form-group">
-            <label>Batch Number</label>
-            <input type="text" class="form-control" [(ngModel)]="newBatch.batchNumber" placeholder="e.g., BT-4530">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Quantity (units)</label>
-            <input type="text" class="form-control" [(ngModel)]="newBatch.quantity" placeholder="e.g., 500">
-          </div>
-          <div class="form-group">
-            <label>Reception Date</label>
-            <input type="date" class="form-control" [(ngModel)]="newBatch.receptionDate">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Supplier</label>
-            <input type="text" class="form-control" [(ngModel)]="newBatch.supplier" placeholder="">
-          </div>
-          <div class="form-group">
-            <label>Expiration Date</label>
-            <input type="date" class="form-control" [(ngModel)]="newBatch.expirationDate">
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Quality Inspection Notes</label>
-          <textarea class="form-control" [(ngModel)]="newBatch.notes" placeholder="Quality check results, temperature on arrival, etc."></textarea>
-        </div>
-      </div>
-      <div class="modal-footer" style="display: flex; gap: 12px;">
-        <button class="btn-cancel" style="flex:1" (click)="closeAddBatch()">Cancel</button>
-        <button class="btn-submit" style="flex:1" (click)="addBatch()">
-          <span class="material-symbols-outlined" style="font-size:16px; margin-right:4px; vertical-align:middle;">layers</span>
-          Register Batch
-        </button>
-      </div>
-    </div>
+        @if (step() < 2) {
+          <button class="btn-primary" (click)="next()">{{ 'OPERATIONS.CONTINUE' | translate }}</button>
+        } @else {
+          <button class="btn-primary" (click)="confirm()">
+            {{ (isSupplier() ? 'OPERATIONS.CONFIRM_BATCH_REGISTRATION' : 'OPERATIONS.CONFIRM_BATCH_RECEIPT') | translate }}
+          </button>
+        }
+      </footer>
+    </section>
   </div>
 }
-
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />

@@ -30,9 +30,9 @@
       "id": "PRD-001",
       "name": "Fresh Strawberries",
       "category": "Fruits",
-      "stock": "450",
-      "temp": "3°C",
-      "exp": "2026-04-28",
+      "stock": "408",
+      "temp": "4°C",
+      "exp": "2026-10-24",
       "warehouse": "Lima Central"
     },
     {
@@ -41,16 +41,16 @@
       "category": "Vegetables",
       "stock": "320",
       "temp": "5°C",
-      "exp": "2026-04-25",
+      "exp": "2026-10-26",
       "warehouse": "North Hub"
     },
     {
       "id": "PRD-003",
       "name": "Fresh Milk",
       "category": "Dairy",
-      "stock": "180",
+      "stock": "280",
       "temp": "4°C",
-      "exp": "2026-04-24",
+      "exp": "2026-10-23",
       "warehouse": "Lima Central"
     }
   ],
@@ -103,21 +103,90 @@
       "time": "8h ago",
       "location": "North Hub",
       "severity": "Medium"
+    },
+    {
+      "id": "ALT-AUTO-EXPIRATION-WINDOW-MINORISTA-BT-R-PRD-002",
+      "type": "Lote vencido",
+      "time": "Vencido hace 142 días",
+      "location": "Conservadora 1",
+      "severity": "Critical",
+      "status": "OPEN",
+      "message": "Helado D'Onofrio venció hace 142 días.",
+      "recommendedAction": "Inmovilizar el lote y evitar su despacho hasta que se registre la disposición final.",
+      "generatedAt": "2026-11-05T22:17:48.809Z",
+      "aggregateId": "BT-R-PRD-002",
+      "ruleId": "EXPIRATION_WINDOW",
+      "audience": "Minorista",
+      "automatic": true
     }
   ],
   "shipments": [
     {
+      "id": "ENV-082DF9AA",
+      "product": "Fresh Strawberries",
+      "route": "Miraflores → Surco",
+      "temperature": "3°C",
+      "eta": "2026-11-08T18:12",
+      "driver": "Alex Jimenez",
+      "vehicle": "D9H-145",
+      "clientId": "CLI-001",
+      "clientName": "Bodega San José",
+      "recipientId": "2",
+      "allocations": [
+        {
+          "batchId": "BT-4530",
+          "productId": "PRD-001",
+          "quantity": 12
+        }
+      ],
+      "status": "Delivered",
+      "createdAt": "2026-11-05T23:12:44.758Z",
+      "timeline": [
+        {
+          "status": "Preparing",
+          "at": "2026-11-05T23:12:44.758Z"
+        },
+        {
+          "status": "In Transit",
+          "at": "2026-11-05T23:15:10.684Z"
+        },
+        {
+          "status": "Awaiting Receipt",
+          "at": "2026-11-05T23:15:48.848Z"
+        },
+        {
+          "status": "Delivered",
+          "at": "2026-11-05T23:17:09.751Z"
+        }
+      ],
+      "receipt": {
+        "decision": "accepted",
+        "quantities": [
+          {
+            "batchId": "BT-4530",
+            "productId": "PRD-001",
+            "quantity": 12
+          }
+        ],
+        "notes": "",
+        "at": "2026-11-05T23:17:09.751Z",
+        "actor": "bodega"
+      }
+    },
+    {
       "id": "FK-1023",
+      "batchNumber": "BT-4501",
       "product": "Berries",
       "route": "Lima → Surco",
       "temperature": "3°C",
       "eta": "12:30 PM",
-      "status": "In Transit",
+      "status": "Delivered",
       "driver": "Juan Pérez",
       "vehicle": "REF-001"
     },
     {
       "id": "FK-1024",
+      "batchNumber": "BT-4512",
       "product": "Lettuce",
       "route": "Callao → Miraflores",
       "temperature": "5°C",
@@ -128,31 +197,34 @@
     },
     {
       "id": "FK-1025",
+      "batchNumber": "BT-4520",
       "product": "Dairy",
       "route": "Lima → San Isidro",
       "temperature": "6°C",
       "eta": "2:40 PM",
-      "status": "Delayed",
+      "status": "Delivered",
       "driver": "Carlos López",
       "vehicle": "REF-003"
     },
     {
       "id": "FK-1026",
+      "batchNumber": "BT-4530",
       "product": "Chicken",
       "route": "Surco → Barranco",
       "temperature": "2°C",
       "eta": "3:00 PM",
-      "status": "In Transit",
+      "status": "Delivered",
       "driver": "Ana Torres",
       "vehicle": "REF-004"
     },
     {
       "id": "FK-1027",
+      "batchNumber": "BT-4542",
       "product": "Frozen Shrimp",
       "route": "Callao → Chorrillos",
       "temperature": "-18°C",
       "eta": "4:30 PM",
-      "status": "In Transit",
+      "status": "Delivered",
       "driver": "Luis Ríos",
       "vehicle": "REF-005"
     }
@@ -164,7 +236,8 @@
       "type": "Bodega",
       "orders": 48,
       "province": "Lima",
-      "district": "Surco"
+      "district": "Surco",
+      "recipientId": "2"
     },
     {
       "id": "CLI-002",
@@ -172,7 +245,8 @@
       "type": "Minimarket",
       "orders": 35,
       "province": "Lima",
-      "district": "SMP"
+      "district": "SMP",
+      "recipientId": "2"
     },
     {
       "id": "CLI-003",
@@ -180,7 +254,8 @@
       "type": "Cadena Retail",
       "orders": 42,
       "province": "Ica",
-      "district": "Ate"
+      "district": "Ate",
+      "recipientId": "2"
     },
     {
       "id": "CLI-004",
@@ -188,7 +263,8 @@
       "type": "Frutería Especializada",
       "orders": 28,
       "province": "Lima",
-      "district": "Santa anita"
+      "district": "Santa anita",
+      "recipientId": "2"
     },
     {
       "id": "CLI-005",
@@ -196,7 +272,8 @@
       "type": "Bodega",
       "orders": 31,
       "province": "Lima",
-      "district": "Ate"
+      "district": "Ate",
+      "recipientId": "2"
     }
   ],
   "suppliers": [
@@ -265,8 +342,8 @@
       "name": "Coca Cola 500ml",
       "category": "Bebidas",
       "stock": "50",
-      "temp": "7°C",
-      "exp": "2026-12-01",
+      "temp": "8°C",
+      "exp": "2026-12-02",
       "warehouse": "Bodega Principal",
       "status": "Active"
     },
@@ -276,7 +353,7 @@
       "category": "Congelados",
       "stock": "12",
       "temp": "-18°C",
-      "exp": "2026-06-15",
+      "exp": "2026-06-16",
       "warehouse": "Conservadora 1"
     },
     {
@@ -285,80 +362,532 @@
       "category": "Dairy",
       "stock": "180",
       "temp": "4°C",
-      "exp": "2026-05-01",
-      "warehouse": "Lima Central"
+      "exp": "2026-05-02",
+      "warehouse": "Refrigeradora 1"
     },
     {
       "id": "PRD-004",
       "name": "Cheese",
       "category": "Dairy",
-      "warehouse": "Santa Anita",
+      "warehouse": "Refrigeradora 2",
       "stock": "20",
       "temp": "5°C",
-      "exp": "2026-10-14"
+      "exp": "2026-10-15"
     },
     {
       "id": "PRD-005",
       "name": "Dulce de leche",
       "category": "Lacteo",
-      "warehouse": "Tambo",
+      "warehouse": "Conservadora 2",
       "stock": "50",
       "temp": "6°C",
-      "exp": "2026-12-31"
+      "exp": "2027-01-01"
+    },
+    {
+      "id": "REC-c6c731a7",
+      "name": "Fresh Strawberries",
+      "category": "Fruits",
+      "stock": "12",
+      "temp": "3°C",
+      "exp": "2026-11-07",
+      "warehouse": "Bodega San José",
+      "sourceProductId": "PRD-001"
     }
   ],
   "batches": [
     {
       "id": "BT-4501",
       "productId": "PRD-001",
-      "quantity": "150",
+      "quantity": 100,
       "weight": "300 kg",
-      "receptionDate": "2026-04-10",
-      "expirationDate": "2026-04-28",
+      "receptionDate": "2026-10-11",
+      "expirationDate": "2026-10-24",
       "supplier": "Fresh Farms Co.",
       "location": "Rampa 01",
       "status": "Vender ya",
-      "notes": "Good condition on arrival"
+      "notes": "Good condition on arrival",
+      "audience": "Supervisor"
     },
     {
       "id": "BT-4512",
       "productId": "PRD-001",
-      "quantity": "200",
+      "quantity": 160,
       "weight": "400 kg",
-      "receptionDate": "2026-04-12",
-      "expirationDate": "2026-05-02",
+      "receptionDate": "2026-10-13",
+      "expirationDate": "2026-10-26",
       "supplier": "Green Valley Produce",
       "location": "Rack B4",
       "status": "En espera",
-      "notes": "Stored correctly"
+      "notes": "Stored correctly",
+      "audience": "Supervisor"
     },
     {
       "id": "BT-4530",
       "productId": "PRD-001",
-      "quantity": "100",
+      "quantity": 88,
       "weight": "200 kg",
-      "receptionDate": "2026-04-15",
-      "expirationDate": "2026-05-06",
+      "receptionDate": "2026-10-16",
+      "expirationDate": "2026-11-07",
       "supplier": "Agroexportadora",
       "location": "Rack B5",
       "status": "Fresh",
-      "notes": "Perfect temp"
+      "notes": "Perfect temp",
+      "audience": "Supervisor"
     },
     {
       "id": "BT-B101",
-      "productId": "B-PRD-001",
-      "quantity": "24",
+      "productId": "PRD-001",
+      "quantity": 24,
       "weight": "12 kg",
-      "receptionDate": "2026-01-10",
-      "expirationDate": "2026-12-01",
+      "receptionDate": "2026-01-11",
+      "expirationDate": "2026-12-02",
       "supplier": "Coca Cola Zero",
       "location": "Estante A",
       "status": "Fresh",
-      "notes": "N/A"
+      "notes": "N/A",
+      "audience": "Minorista"
+    },
+    {
+      "id": "BT-S-PRD-002",
+      "productId": "PRD-002",
+      "quantity": 320,
+      "expirationDate": "2026-10-26",
+      "receptionDate": "2026-11-05",
+      "supplier": "Proveedor de demostración",
+      "location": "North Hub",
+      "status": "Fresh",
+      "audience": "Supervisor"
+    },
+    {
+      "id": "BT-S-PRD-003",
+      "productId": "PRD-003",
+      "quantity": 180,
+      "expirationDate": "2026-10-23",
+      "receptionDate": "2026-11-05",
+      "supplier": "Proveedor de demostración",
+      "location": "Lima Central",
+      "status": "Fresh",
+      "audience": "Supervisor"
+    },
+    {
+      "id": "BT-R-PRD-001",
+      "productId": "PRD-001",
+      "quantity": 26,
+      "expirationDate": "2026-12-02",
+      "receptionDate": "2026-11-05",
+      "supplier": "Proveedor de demostración",
+      "location": "Bodega Principal",
+      "status": "Fresh",
+      "audience": "Minorista"
+    },
+    {
+      "id": "BT-R-PRD-002",
+      "productId": "PRD-002",
+      "quantity": 12,
+      "expirationDate": "2026-06-16",
+      "receptionDate": "2026-11-05",
+      "supplier": "Proveedor de demostración",
+      "location": "Conservadora 1",
+      "status": "Fresh",
+      "audience": "Minorista"
+    },
+    {
+      "id": "BT-R-PRD-003",
+      "productId": "PRD-003",
+      "quantity": 180,
+      "expirationDate": "2026-05-02",
+      "receptionDate": "2026-11-05",
+      "supplier": "Proveedor de demostración",
+      "location": "Lima Central",
+      "status": "Fresh",
+      "audience": "Minorista"
+    },
+    {
+      "id": "BT-R-PRD-004",
+      "productId": "PRD-004",
+      "quantity": 20,
+      "expirationDate": "2026-10-15",
+      "receptionDate": "2026-11-05",
+      "supplier": "Proveedor de demostración",
+      "location": "Santa Anita",
+      "status": "Fresh",
+      "audience": "Minorista"
+    },
+    {
+      "id": "BT-R-PRD-005",
+      "productId": "PRD-005",
+      "quantity": 50,
+      "expirationDate": "2027-01-01",
+      "receptionDate": "2026-11-05",
+      "supplier": "Proveedor de demostración",
+      "location": "Tambo",
+      "status": "Fresh",
+      "audience": "Minorista"
+    },
+    {
+      "id": "BT-DEMO-1",
+      "productId": "PRD-003",
+      "quantity": 30,
+      "expirationDate": "2026-11-08",
+      "receptionDate": "2026-11-05",
+      "supplier": "Lácteos del Perú",
+      "location": "Cámara 02 · Rack 1",
+      "status": "Fresh",
+      "audience": "Supervisor"
+    },
+    {
+      "id": "BT-DEMO-2",
+      "productId": "PRD-003",
+      "quantity": 70,
+      "expirationDate": "2026-11-09",
+      "receptionDate": "2026-11-05",
+      "supplier": "Lácteos del Perú",
+      "location": "Cámara 02 · Rack 2",
+      "status": "Fresh",
+      "audience": "Supervisor"
+    },
+    {
+      "id": "BT-4531",
+      "quantity": 60,
+      "receptionDate": "2026-11-05",
+      "expirationDate": "2027-01-30",
+      "supplier": "Admin User",
+      "location": "Lima Central",
+      "notes": "Mantener bajo 5°C",
+      "productId": "PRD-001",
+      "status": "Fresh",
+      "audience": "Supervisor"
+    },
+    {
+      "id": "REC-ENV-082DF9AA-BT-4530",
+      "productId": "REC-c6c731a7",
+      "quantity": 12,
+      "weight": "200 kg",
+      "receptionDate": "2026-11-05",
+      "expirationDate": "2026-11-07",
+      "supplier": "Refrio · Distribución",
+      "location": "Bodega San José",
+      "status": "Fresh",
+      "notes": "Perfect temp",
+      "audience": "Minorista"
     }
   ],
-  "$schema": "./node_modules/json-server/schema.json"
+  "events": [
+    {
+      "id": "EVT-c5433c3d-2c76-47b5-962b-50e1f6f2180d",
+      "name": "Lectura manual registrada",
+      "aggregateId": "PRD-001",
+      "description": "4 °C. Lectura de demostración; se reevaluaron las alertas.",
+      "context": "Storage & Telemetry",
+      "occurredAt": "2026-11-06T01:07:54.342Z",
+      "actor": "admin",
+      "source": "USER",
+      "outcome": "SUCCESS",
+      "audience": "Supervisor"
+    },
+    {
+      "id": "EVT-236e1966-ff76-47a2-a4a1-54dffad4d08a",
+      "name": "Merma registrada",
+      "aggregateId": "BT-4512",
+      "description": "40 unidades retiradas. Causa: Vencimiento.",
+      "context": "Inventory & FEFO",
+      "occurredAt": "2026-11-05T23:35:53.359Z",
+      "actor": "admin",
+      "source": "USER",
+      "outcome": "SUCCESS",
+      "audience": "Supervisor"
+    },
+    {
+      "id": "EVT-0c8cf42e-f84e-4cfa-b055-b824d205b520",
+      "name": "Merma registrada",
+      "aggregateId": "BT-4501",
+      "description": "50 unidades retiradas. Causa: Vencimiento.",
+      "context": "Inventory & FEFO",
+      "occurredAt": "2026-11-05T23:34:08.801Z",
+      "actor": "admin",
+      "source": "USER",
+      "outcome": "SUCCESS",
+      "audience": "Supervisor"
+    },
+    {
+      "id": "EVT-ae7c384c-5644-47e6-b80a-6f47ca4e1ea6",
+      "name": "Recepción confirmada",
+      "aggregateId": "ENV-082DF9AA",
+      "description": "12 unidades recibidas. ",
+      "context": "Traceability & Certification",
+      "occurredAt": "2026-11-05T23:17:09.752Z",
+      "actor": "bodega",
+      "source": "USER",
+      "outcome": "SUCCESS",
+      "audience": "ALL"
+    },
+    {
+      "id": "EVT-d3fe69a6-7a62-4c4d-ab0f-e4325be583fc",
+      "name": "Envío llegó a destino",
+      "aggregateId": "ENV-082DF9AA",
+      "description": "Mercadería disponible para la revisión del cliente.",
+      "context": "Traceability & Certification",
+      "occurredAt": "2026-11-05T23:15:48.848Z",
+      "actor": "admin",
+      "source": "USER",
+      "outcome": "SUCCESS",
+      "audience": "ALL"
+    },
+    {
+      "id": "EVT-1c9c8dbe-e4ec-47fb-ab85-013d145c2c2d",
+      "name": "Envío despachado",
+      "aggregateId": "ENV-082DF9AA",
+      "description": "El transporte salió hacia el destino.",
+      "context": "Traceability & Certification",
+      "occurredAt": "2026-11-05T23:15:10.684Z",
+      "actor": "admin",
+      "source": "USER",
+      "outcome": "SUCCESS",
+      "audience": "ALL"
+    },
+    {
+      "id": "EVT-0519b565-afd6-4689-8659-27135c2babe2",
+      "name": "Despacho confirmado",
+      "aggregateId": "ENV-082DF9AA",
+      "description": "Se separaron 12 unidades con FEFO. Lotes: BT-4530.",
+      "context": "Traceability & Certification",
+      "occurredAt": "2026-11-05T23:12:44.759Z",
+      "actor": "admin",
+      "source": "USER",
+      "outcome": "SUCCESS",
+      "audience": "ALL"
+    },
+    {
+      "id": "EVT-7f21fec2-dec4-4935-aac4-dfaa1921e727",
+      "name": "Lote recibido",
+      "aggregateId": "BT-4531",
+      "description": "Ingreso de 60 unidades en Lima Central. Stock actualizado.",
+      "context": "Inventory & FEFO",
+      "occurredAt": "2026-11-05T23:08:52.740Z",
+      "actor": "admin",
+      "source": "USER",
+      "outcome": "SUCCESS",
+      "audience": "Supervisor"
+    },
+    {
+      "id": "EVT-fa92ee9e-7745-4d66-ad00-6f445b7b9ac0",
+      "name": "Producto actualizado",
+      "aggregateId": "PRD-005",
+      "description": "Los saldos se gestionan mediante lotes y movimientos.",
+      "context": "Inventory & FEFO",
+      "occurredAt": "2026-11-05T22:30:03.940Z",
+      "actor": "bodega",
+      "source": "USER",
+      "outcome": "SUCCESS",
+      "audience": "Minorista"
+    },
+    {
+      "id": "EVT-e1ff3680-2233-4bb5-8da0-9f21817f0020",
+      "name": "Producto actualizado",
+      "aggregateId": "PRD-005",
+      "description": "Los saldos se gestionan mediante lotes y movimientos.",
+      "context": "Inventory & FEFO",
+      "occurredAt": "2026-11-05T22:29:58.945Z",
+      "actor": "bodega",
+      "source": "USER",
+      "outcome": "SUCCESS",
+      "audience": "Minorista"
+    },
+    {
+      "id": "EVT-130a695c-7937-439f-8539-32c987c1f15d",
+      "name": "Producto actualizado",
+      "aggregateId": "PRD-004",
+      "description": "Los saldos se gestionan mediante lotes y movimientos.",
+      "context": "Inventory & FEFO",
+      "occurredAt": "2026-11-05T22:29:49.387Z",
+      "actor": "bodega",
+      "source": "USER",
+      "outcome": "SUCCESS",
+      "audience": "Minorista"
+    },
+    {
+      "id": "EVT-7c824590-5eb5-4a84-9376-bec5bda80816",
+      "name": "Producto actualizado",
+      "aggregateId": "PRD-003",
+      "description": "Los saldos se gestionan mediante lotes y movimientos.",
+      "context": "Inventory & FEFO",
+      "occurredAt": "2026-11-05T22:29:40.059Z",
+      "actor": "bodega",
+      "source": "USER",
+      "outcome": "SUCCESS",
+      "audience": "Minorista"
+    },
+    {
+      "id": "EVT-2c1fdfc2-45d4-4073-8703-02cbe7bb46fd",
+      "name": "Incidente en revisión",
+      "aggregateId": "ALT-AUTO-EXPIRATION-WINDOW-MINORISTA-BT-R-PRD-002",
+      "description": "bodega.   ",
+      "context": "Incident, Alert & Audit",
+      "occurredAt": "2026-11-05T22:17:52.731Z",
+      "actor": "bodega",
+      "source": "USER",
+      "outcome": "SUCCESS",
+      "audience": "Minorista"
+    },
+    {
+      "id": "EVT-c8f3808d-773c-459a-a391-2506313b108c",
+      "name": "Lectura manual registrada",
+      "aggregateId": "PRD-001",
+      "description": "8 °C. Lectura de demostración; se reevaluaron las alertas.",
+      "context": "Storage & Telemetry",
+      "occurredAt": "2026-11-05T22:17:38.719Z",
+      "actor": "bodega",
+      "source": "USER",
+      "outcome": "SUCCESS",
+      "audience": "Minorista"
+    },
+    {
+      "id": "EVT-1001",
+      "name": "Lote recibido",
+      "context": "Inventory & FEFO",
+      "aggregateId": "BT-4501",
+      "occurredAt": "2026-10-20T08:15:00-05:00",
+      "actor": "Ana García",
+      "source": "USER",
+      "outcome": "SUCCESS",
+      "description": "Se registró el lote de fresas con fecha de vencimiento y ubicación refrigerada."
+    },
+    {
+      "id": "EVT-1002",
+      "name": "Temperatura registrada",
+      "context": "Storage & Telemetry",
+      "aggregateId": "BT-4501",
+      "occurredAt": "2026-10-20T08:18:00-05:00",
+      "actor": "Sensor DEV-002",
+      "source": "SIMULATED",
+      "outcome": "INFO",
+      "description": "La demostración registró una lectura de 8,1 °C, fuera del rango configurado de 2 a 6 °C."
+    },
+    {
+      "id": "EVT-1003",
+      "name": "Temperatura fuera de rango detectada",
+      "context": "Storage & Telemetry",
+      "aggregateId": "BT-4501",
+      "occurredAt": "2026-10-20T08:19:00-05:00",
+      "actor": "Regla térmica",
+      "source": "SYSTEM",
+      "outcome": "WARNING",
+      "description": "La regla térmica detectó una desviación sostenida y solicitó abrir un incidente."
+    },
+    {
+      "id": "EVT-1004",
+      "name": "Alerta generada",
+      "context": "Incident, Alert & Audit",
+      "aggregateId": "ALT-2841",
+      "occurredAt": "2026-10-20T08:20:00-05:00",
+      "actor": "Sistema Refrio",
+      "source": "SYSTEM",
+      "outcome": "WARNING",
+      "description": "Se generó una única alerta crítica; los eventos duplicados quedaron suprimidos."
+    },
+    {
+      "id": "EVT-1005",
+      "name": "Lote inmovilizado",
+      "context": "Inventory & FEFO",
+      "aggregateId": "BT-4501",
+      "occurredAt": "2026-10-20T08:27:00-05:00",
+      "actor": "Ana García",
+      "source": "USER",
+      "outcome": "BLOCKED",
+      "description": "El supervisor inmovilizó el lote; el sistema impide incluirlo en un despacho."
+    },
+    {
+      "id": "EVT-1006",
+      "name": "Lote liberado",
+      "context": "Inventory & FEFO",
+      "aggregateId": "BT-4501",
+      "occurredAt": "2026-10-20T09:05:00-05:00",
+      "actor": "Carlos Pérez",
+      "source": "USER",
+      "outcome": "SUCCESS",
+      "description": "Después de la inspección, el responsable documentó la decisión y liberó el lote."
+    },
+    {
+      "id": "EVT-1007",
+      "name": "Despacho confirmado",
+      "context": "Traceability & Certification",
+      "aggregateId": "FK-1023",
+      "occurredAt": "2026-10-20T09:20:00-05:00",
+      "actor": "Ana García",
+      "source": "USER",
+      "outcome": "SUCCESS",
+      "description": "Se confirmó el despacho del lote apto con mayor prioridad FEFO."
+    },
+    {
+      "id": "EVT-1008",
+      "name": "Despacho bloqueado por vencimiento",
+      "context": "Inventory & FEFO",
+      "aggregateId": "BT-4490",
+      "occurredAt": "2026-10-20T09:28:00-05:00",
+      "actor": "Regla FEFO",
+      "source": "SYSTEM",
+      "outcome": "BLOCKED",
+      "description": "El sistema rechazó la salida de un lote vencido y conservó la evidencia de la decisión."
+    },
+    {
+      "id": "EVT-1009",
+      "name": "Sensor sin conexión",
+      "context": "Storage & Telemetry",
+      "aggregateId": "DEV-003",
+      "occurredAt": "2026-10-20T09:35:00-05:00",
+      "actor": "Monitor de enlace",
+      "source": "SIMULATED",
+      "outcome": "WARNING",
+      "description": "No se reciben lecturas desde hace 15 minutos; la última lectura queda marcada como atrasada."
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json",
+  "incidents": [
+    {
+      "id": "ALT-AUTO-EXPIRATION-WINDOW-MINORISTA-BT-R-PRD-002",
+      "status": "IN_REVIEW",
+      "actor": "bodega",
+      "cause": "",
+      "action": "",
+      "decision": "inspect",
+      "openedAt": "2026-11-05T22:17:52.731Z",
+      "updatedAt": "2026-11-05T22:17:52.731Z"
+    }
+  ],
+  "losses": [
+    {
+      "id": "595e8ab1-f41e-4424-8fa5-441a9c4fd39a",
+      "batchId": "BT-4512",
+      "productId": "PRD-001",
+      "quantity": 40,
+      "cause": "Vencimiento",
+      "at": "2026-11-05T23:35:53.359Z",
+      "audience": "Supervisor"
+    },
+    {
+      "id": "44c50c4f-36df-44a3-b687-8d1237e64879",
+      "batchId": "BT-4501",
+      "productId": "PRD-001",
+      "quantity": 50,
+      "cause": "Vencimiento",
+      "at": "2026-11-05T23:34:08.801Z",
+      "audience": "Supervisor"
+    }
+  ],
+  "telemetry": [
+    {
+      "id": "bf5b8aae-9487-4e12-8df6-b84e84b829bb",
+      "productId": "PRD-001",
+      "audience": "Minorista",
+      "value": 8,
+      "at": "2026-11-05T22:17:38.719Z"
+    },
+    {
+      "id": "7041183d-6eff-4ab0-9ff6-8c72cb4679a7",
+      "productId": "PRD-001",
+      "audience": "Supervisor",
+      "value": 4,
+      "at": "2026-11-06T01:07:54.342Z"
+    }
+  ]
 }
-
-
-
